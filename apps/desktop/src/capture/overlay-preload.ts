@@ -20,13 +20,15 @@ contextBridge.exposeInMainWorld("electronAPI", {
       }
     );
   },
+  onActivate: (callback: () => void) => {
+    ipcRenderer.on("overlay:activate", () => {
+      callback();
+    });
+  },
   onClear: (callback: () => void) => {
     ipcRenderer.on("overlay:clear", () => {
       callback();
     });
-  },
-  readyForScreenshot: () => {
-    ipcRenderer.send("overlay:ready");
   },
   screenshotReady: () => {
     ipcRenderer.send("overlay:screenshot-ready");

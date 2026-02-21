@@ -1,15 +1,22 @@
 import { BrowserWindow, ipcMain, nativeImage, screen } from "electron";
-import { execFile } from "node:child_process";
+import { execFile, type ChildProcess } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { activateOverlay, deactivateOverlay } from "./overlayWindow";
+import {
+  activateOverlay,
+  deactivateOverlay,
+  isOverlayActive,
+  setOverlayScreenshot,
+} from "./overlayWindow";
 import { uploadCapture } from "./uploader";
 import { showThumbnail } from "./thumbnailManager";
 
 let mainWindow: BrowserWindow | null = null;
 let capturedScreenshot: Electron.NativeImage | null = null;
 let tmpScreenshotPath: string | null = null;
+let isCaptureInProgress = false;
+let activeScreencapture: ChildProcess | null = null;
 
 export function cleanupTmpFile() {
   if (tmpScreenshotPath) {
@@ -55,8 +62,13 @@ export function initCaptureManager(win: BrowserWindow) {
   );
 
   ipcMain.on("capture:cancel", () => {
+    if (activeScreencapture) {
+      activeScreencapture.kill();
+      activeScreencapture = null;
+    }
     deactivateOverlay();
     capturedScreenshot = null;
+    isCaptureInProgress = false;
     cleanupTmpFile();
   });
 
@@ -88,6 +100,13 @@ function requestAuthToken(): Promise<string | null> {
 }
 
 export async function startCapture() {
+  if (isCaptureInProgress || isOverlayActive()) return;
+
+  isCaptureInProgress = true;
+
+  // Show overlay immediately — transparent canvas with CSS crosshair
+  activateOverlay();
+
   try {
     tmpScreenshotPath = path.join(
       os.tmpdir(),
@@ -95,15 +114,23 @@ export async function startCapture() {
     );
 
     await new Promise<void>((resolve, reject) => {
-      execFile(
+      activeScreencapture = execFile(
         "screencapture",
         ["-x", "-t", "png", tmpScreenshotPath!],
         (err) => {
+          activeScreencapture = null;
           if (err) reject(err);
           else resolve();
         }
       );
     });
+
+    // If overlay was dismissed (Escape) while screencapture was running, bail out
+    if (!isOverlayActive()) {
+      isCaptureInProgress = false;
+      cleanupTmpFile();
+      return;
+    }
 
     const buffer = fs.readFileSync(tmpScreenshotPath);
     capturedScreenshot = nativeImage.createFromBuffer(buffer);
@@ -113,13 +140,18 @@ export async function startCapture() {
       console.error(
         "[capture] Empty screenshot — check Screen Recording permission in System Settings > Privacy & Security"
       );
+      deactivateOverlay();
+      isCaptureInProgress = false;
       cleanupTmpFile();
       return;
     }
 
-    activateOverlay(tmpScreenshotPath);
+    // Send screenshot to overlay — it swaps from CSS crosshair to custom drawn crosshair
+    setOverlayScreenshot(tmpScreenshotPath);
   } catch (err) {
     console.error("[capture] Failed to start capture:", err);
+    deactivateOverlay();
+    isCaptureInProgress = false;
     cleanupTmpFile();
   }
 }
@@ -162,6 +194,7 @@ async function handleRegionSelected(rect: {
     console.error("[capture] Region handling failed:", err);
   } finally {
     capturedScreenshot = null;
+    isCaptureInProgress = false;
     cleanupTmpFile();
   }
 }

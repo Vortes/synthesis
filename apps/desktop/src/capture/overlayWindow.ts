@@ -12,8 +12,8 @@ function getOverlayHTML(): string {
   <meta charset="UTF-8" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: transparent; cursor: none; }
-    canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: none; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: transparent; cursor: crosshair; }
+    canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; }
   </style>
 </head>
 <body>
@@ -24,6 +24,7 @@ function getOverlayHTML(): string {
     const dpr = window.devicePixelRatio || 1;
 
     let screenshotImage = null;
+    let screenshotReady = false;
     let isDrawing = false;
     let startX = 0, startY = 0, currentX = 0, currentY = 0;
     let mouseX = -1, mouseY = -1;
@@ -44,7 +45,7 @@ function getOverlayHTML(): string {
       const h = window.innerHeight;
       ctx.clearRect(0, 0, w, h);
 
-      if (!screenshotImage) return;
+      if (!screenshotReady || !screenshotImage) return;
 
       ctx.drawImage(screenshotImage, 0, 0, w, h);
 
@@ -113,9 +114,20 @@ function getOverlayHTML(): string {
       ctx.restore();
     }
 
+    window.electronAPI.onActivate(function() {
+      screenshotImage = null;
+      screenshotReady = false;
+      isDrawing = false;
+      mouseX = -1; mouseY = -1;
+      canvas.style.cursor = "crosshair";
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
+
     window.electronAPI.onScreenshot(function(filePath) {
       screenshotImage = new Image();
       screenshotImage.onload = function() {
+        screenshotReady = true;
+        canvas.style.cursor = "none";
         resizeCanvas();
         window.electronAPI.screenshotReady();
       };
@@ -124,8 +136,10 @@ function getOverlayHTML(): string {
 
     window.electronAPI.onClear(function() {
       screenshotImage = null;
+      screenshotReady = false;
       isDrawing = false;
       mouseX = -1; mouseY = -1;
+      canvas.style.cursor = "crosshair";
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     });
 
@@ -133,7 +147,7 @@ function getOverlayHTML(): string {
     window.addEventListener("resize", resizeCanvas);
 
     canvas.addEventListener("mousedown", function(e) {
-      if (!screenshotImage) return;
+      if (!screenshotReady) return;
       isDrawing = true;
       startX = e.clientX; startY = e.clientY;
       currentX = e.clientX; currentY = e.clientY;
@@ -144,7 +158,7 @@ function getOverlayHTML(): string {
       if (isDrawing) {
         currentX = e.clientX; currentY = e.clientY;
       }
-      draw();
+      if (screenshotReady) draw();
     });
 
     canvas.addEventListener("mouseleave", function() {
@@ -232,15 +246,29 @@ export function initOverlayWindow() {
 }
 
 /**
- * Activate the overlay with a screenshot file path — instant, no flash.
+ * Activate the overlay immediately — transparent canvas with CSS crosshair.
+ * The user sees their desktop through the overlay with a crosshair cursor.
+ * Call setOverlayScreenshot() after to load the actual screenshot.
  */
-export function activateOverlay(screenshotPath: string) {
+export function activateOverlay() {
   if (!overlayWindow || overlayWindow.isDestroyed()) return;
   if (isActive) return;
 
-  pendingScreenshot = screenshotPath;
+  isActive = true;
+  overlayWindow.webContents.send("overlay:activate");
+  overlayWindow.setIgnoreMouseEvents(false);
+  overlayWindow.setOpacity(1);
+  overlayWindow.focus();
+}
 
-  // Send file path to renderer; it loads via file:// and signals back when drawn
+/**
+ * Send the screenshot file path to the overlay renderer.
+ * It loads via file:// and switches from CSS crosshair to custom drawn crosshair.
+ */
+export function setOverlayScreenshot(screenshotPath: string) {
+  if (!overlayWindow || overlayWindow.isDestroyed()) return;
+
+  pendingScreenshot = screenshotPath;
   overlayWindow.webContents.send("overlay:screenshot", screenshotPath);
 }
 
@@ -257,18 +285,8 @@ export function deactivateOverlay() {
   overlayWindow.webContents.send("overlay:clear");
 }
 
-// Screenshot is drawn on canvas — now safe to show
-ipcMain.on("overlay:screenshot-ready", () => {
-  if (overlayWindow && !overlayWindow.isDestroyed()) {
-    isActive = true;
-    overlayWindow.setIgnoreMouseEvents(false);
-    overlayWindow.setOpacity(1);
-    overlayWindow.focus();
-  }
-});
-
-// No longer needed but keep for compatibility
-ipcMain.on("overlay:ready", () => {});
+// Screenshot is drawn on canvas — overlay is already visible, just acknowledge
+ipcMain.on("overlay:screenshot-ready", () => {});
 
 export function isOverlayActive(): boolean {
   return isActive;
