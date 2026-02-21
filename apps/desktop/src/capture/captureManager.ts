@@ -1,16 +1,44 @@
-import {
-  BrowserWindow,
-  desktopCapturer,
-  ipcMain,
-  nativeImage,
-  screen,
-} from "electron";
-import { createOverlayWindow, closeOverlayWindow } from "./overlayWindow";
+import { BrowserWindow, ipcMain, nativeImage, screen } from "electron";
+import { execFile } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { activateOverlay, deactivateOverlay } from "./overlayWindow";
 import { uploadCapture } from "./uploader";
 import { showThumbnail } from "./thumbnailManager";
 
 let mainWindow: BrowserWindow | null = null;
 let capturedScreenshot: Electron.NativeImage | null = null;
+let tmpScreenshotPath: string | null = null;
+
+export function cleanupTmpFile() {
+  if (tmpScreenshotPath) {
+    try {
+      fs.unlinkSync(tmpScreenshotPath);
+    } catch {
+      // file may already be gone
+    }
+    tmpScreenshotPath = null;
+  }
+}
+
+export function cleanupStaleTmpFiles() {
+  try {
+    const tmpDir = os.tmpdir();
+    const files = fs.readdirSync(tmpDir);
+    for (const file of files) {
+      if (file.startsWith("synthesis-capture-") && file.endsWith(".png")) {
+        try {
+          fs.unlinkSync(path.join(tmpDir, file));
+        } catch {
+          // ignore individual failures
+        }
+      }
+    }
+  } catch {
+    // tmpdir read failed, not critical
+  }
+}
 
 export function initCaptureManager(win: BrowserWindow) {
   mainWindow = win;
@@ -21,14 +49,15 @@ export function initCaptureManager(win: BrowserWindow) {
       _event,
       rect: { x: number; y: number; width: number; height: number }
     ) => {
-      closeOverlayWindow();
+      deactivateOverlay();
       await handleRegionSelected(rect);
     }
   );
 
   ipcMain.on("capture:cancel", () => {
-    closeOverlayWindow();
+    deactivateOverlay();
     capturedScreenshot = null;
+    cleanupTmpFile();
   });
 
   ipcMain.on("auth:token-response", (_event, token: string | null) => {
@@ -60,44 +89,38 @@ function requestAuthToken(): Promise<string | null> {
 
 export async function startCapture() {
   try {
-    const display = screen.getPrimaryDisplay();
-    const { scaleFactor } = display;
-    // Request physical pixel dimensions for Retina support
-    const thumbnailSize = {
-      width: Math.round(display.size.width * scaleFactor),
-      height: Math.round(display.size.height * scaleFactor),
-    };
+    tmpScreenshotPath = path.join(
+      os.tmpdir(),
+      `synthesis-capture-${Date.now()}.png`
+    );
 
-    console.log("[capture] Requesting screenshot at", thumbnailSize);
-
-    const sources = await desktopCapturer.getSources({
-      types: ["screen"],
-      thumbnailSize,
+    await new Promise<void>((resolve, reject) => {
+      execFile(
+        "screencapture",
+        ["-x", "-t", "png", tmpScreenshotPath!],
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        }
+      );
     });
 
-    // Match source to primary display by display_id (like electron-screenshot-example)
-    const primarySource =
-      sources.find((s) => s.display_id === String(display.id)) || sources[0];
-    if (!primarySource) {
-      console.error("[capture] No screen source found");
-      return;
-    }
-
-    capturedScreenshot = primarySource.thumbnail;
+    const buffer = fs.readFileSync(tmpScreenshotPath);
+    capturedScreenshot = nativeImage.createFromBuffer(buffer);
     const size = capturedScreenshot.getSize();
-    console.log("[capture] Screenshot size:", size.width, "x", size.height);
 
     if (size.width === 0 || size.height === 0) {
       console.error(
         "[capture] Empty screenshot — check Screen Recording permission in System Settings > Privacy & Security"
       );
+      cleanupTmpFile();
       return;
     }
 
-    const screenshotDataUrl = capturedScreenshot.toDataURL();
-    createOverlayWindow(screenshotDataUrl);
+    activateOverlay(tmpScreenshotPath);
   } catch (err) {
     console.error("[capture] Failed to start capture:", err);
+    cleanupTmpFile();
   }
 }
 
@@ -110,7 +133,6 @@ async function handleRegionSelected(rect: {
   if (!capturedScreenshot) return;
 
   try {
-    // Account for display scale factor (Retina)
     const scaleFactor = screen.getPrimaryDisplay().scaleFactor;
     const cropRect = {
       x: Math.round(rect.x * scaleFactor),
@@ -122,20 +144,16 @@ async function handleRegionSelected(rect: {
     const cropped = capturedScreenshot.crop(cropRect);
     const pngBuffer = cropped.toPNG();
 
-    // Show thumbnail immediately
     showThumbnail(cropped.toDataURL());
 
-    // Get auth token from renderer
     const token = await requestAuthToken();
     if (!token) {
       console.error("[capture] No auth token available");
       return;
     }
 
-    // Upload
     const result = await uploadCapture(pngBuffer, token);
     if (result) {
-      // Notify renderer to refresh library
       if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send("capture:complete");
       }
@@ -144,5 +162,6 @@ async function handleRegionSelected(rect: {
     console.error("[capture] Region handling failed:", err);
   } finally {
     capturedScreenshot = null;
+    cleanupTmpFile();
   }
 }

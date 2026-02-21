@@ -3,6 +3,7 @@ import path from "node:path";
 
 let overlayWindow: BrowserWindow | null = null;
 let pendingScreenshot: string | null = null;
+let isActive = false;
 
 function getOverlayHTML(): string {
   return `<!DOCTYPE html>
@@ -11,8 +12,8 @@ function getOverlayHTML(): string {
   <meta charset="UTF-8" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; cursor: crosshair; }
-    canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: transparent; cursor: none; }
+    canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: none; }
   </style>
 </head>
 <body>
@@ -25,6 +26,7 @@ function getOverlayHTML(): string {
     let screenshotImage = null;
     let isDrawing = false;
     let startX = 0, startY = 0, currentX = 0, currentY = 0;
+    let mouseX = -1, mouseY = -1;
 
     function resizeCanvas() {
       const w = window.innerWidth;
@@ -33,7 +35,7 @@ function getOverlayHTML(): string {
       canvas.height = h * dpr;
       canvas.style.width = w + "px";
       canvas.style.height = h + "px";
-      ctx.scale(dpr, dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       draw();
     }
 
@@ -42,12 +44,10 @@ function getOverlayHTML(): string {
       const h = window.innerHeight;
       ctx.clearRect(0, 0, w, h);
 
-      // Draw screenshot at full brightness — looks like the real screen
-      if (screenshotImage) {
-        ctx.drawImage(screenshotImage, 0, 0, w, h);
-      }
+      if (!screenshotImage) return;
 
-      // Only draw selection UI while dragging
+      ctx.drawImage(screenshotImage, 0, 0, w, h);
+
       if (isDrawing) {
         const x = Math.min(startX, currentX);
         const y = Math.min(startY, currentY);
@@ -66,7 +66,7 @@ function getOverlayHTML(): string {
         ctx.lineWidth = 1;
         ctx.strokeRect(x, y, sw, sh);
 
-        // Dimensions label below selection
+        // Dimensions label
         if (sw > 30 && sh > 15) {
           const label = Math.round(sw) + " x " + Math.round(sh);
           ctx.font = "11px -apple-system, BlinkMacSystemFont, sans-serif";
@@ -81,32 +81,74 @@ function getOverlayHTML(): string {
           ctx.fillText(label, lx + 6, ly + 14);
         }
       }
+
+      drawCrosshair();
     }
 
-    window.electronAPI.onScreenshot(function(dataUrl) {
+    function drawCrosshair() {
+      if (mouseX < 0) return;
+      const gap = 4;
+      const len = 14;
+
+      ctx.save();
+      // Dark shadow for contrast on light backgrounds
+      ctx.strokeStyle = "rgba(0, 0, 0, 0.4)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(mouseX - len, mouseY); ctx.lineTo(mouseX - gap, mouseY);
+      ctx.moveTo(mouseX + gap, mouseY); ctx.lineTo(mouseX + len, mouseY);
+      ctx.moveTo(mouseX, mouseY - len); ctx.lineTo(mouseX, mouseY - gap);
+      ctx.moveTo(mouseX, mouseY + gap); ctx.lineTo(mouseX, mouseY + len);
+      ctx.stroke();
+
+      // White crosshair on top
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.95)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(mouseX - len, mouseY); ctx.lineTo(mouseX - gap, mouseY);
+      ctx.moveTo(mouseX + gap, mouseY); ctx.lineTo(mouseX + len, mouseY);
+      ctx.moveTo(mouseX, mouseY - len); ctx.lineTo(mouseX, mouseY - gap);
+      ctx.moveTo(mouseX, mouseY + gap); ctx.lineTo(mouseX, mouseY + len);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    window.electronAPI.onScreenshot(function(filePath) {
       screenshotImage = new Image();
       screenshotImage.onload = function() {
         resizeCanvas();
-        // Tell main process the screenshot is rendered — safe to show window
         window.electronAPI.screenshotReady();
       };
-      screenshotImage.src = dataUrl;
+      screenshotImage.src = "file://" + filePath;
     });
 
-    window.electronAPI.readyForScreenshot();
+    window.electronAPI.onClear(function() {
+      screenshotImage = null;
+      isDrawing = false;
+      mouseX = -1; mouseY = -1;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    });
 
     resizeCanvas();
     window.addEventListener("resize", resizeCanvas);
 
     canvas.addEventListener("mousedown", function(e) {
+      if (!screenshotImage) return;
       isDrawing = true;
       startX = e.clientX; startY = e.clientY;
       currentX = e.clientX; currentY = e.clientY;
     });
 
     canvas.addEventListener("mousemove", function(e) {
-      if (!isDrawing) return;
-      currentX = e.clientX; currentY = e.clientY;
+      mouseX = e.clientX; mouseY = e.clientY;
+      if (isDrawing) {
+        currentX = e.clientX; currentY = e.clientY;
+      }
+      draw();
+    });
+
+    canvas.addEventListener("mouseleave", function() {
+      mouseX = -1; mouseY = -1;
       draw();
     });
 
@@ -134,13 +176,11 @@ function getOverlayHTML(): string {
 </html>`;
 }
 
-export function createOverlayWindow(screenshotDataUrl: string): BrowserWindow {
-  if (overlayWindow && !overlayWindow.isDestroyed()) {
-    overlayWindow.close();
-  }
-
-  pendingScreenshot = screenshotDataUrl;
-
+/**
+ * Create the persistent overlay window once at app startup.
+ * It stays alive but invisible and click-through until activated.
+ */
+export function initOverlayWindow() {
   const primaryDisplay = screen.getPrimaryDisplay();
   const { x, y, width, height } = primaryDisplay.bounds;
 
@@ -149,22 +189,32 @@ export function createOverlayWindow(screenshotDataUrl: string): BrowserWindow {
     y,
     width,
     height,
-    show: false,
+    show: true,
     frame: false,
-    transparent: false,
-    backgroundColor: "#000000",
+    transparent: true,
+    backgroundColor: "#00000000",
     skipTaskbar: true,
     resizable: false,
     movable: false,
     hasShadow: false,
     focusable: true,
     fullscreenable: false,
-    simpleFullscreen: true,
+    enableLargerThanScreen: true,
     webPreferences: {
       preload: path.join(__dirname, "overlay-preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
+      backgroundThrottling: false,
+      webSecurity: false, // allow file:// image loads from data: origin overlay
     },
+  });
+
+  // Start invisible and click-through
+  overlayWindow.setOpacity(0);
+  overlayWindow.setIgnoreMouseEvents(true);
+  overlayWindow.setAlwaysOnTop(true, "screen-saver");
+  overlayWindow.setVisibleOnAllWorkspaces(true, {
+    visibleOnFullScreen: true,
   });
 
   const html = getOverlayHTML();
@@ -172,39 +222,54 @@ export function createOverlayWindow(screenshotDataUrl: string): BrowserWindow {
     `data:text/html;charset=utf-8,${encodeURIComponent(html)}`
   );
 
-  overlayWindow.on("closed", () => {
-    overlayWindow = null;
-    pendingScreenshot = null;
-  });
-
-  return overlayWindow;
+  // Update bounds when display changes
+  const updateBounds = () => {
+    if (!overlayWindow || overlayWindow.isDestroyed()) return;
+    const display = screen.getPrimaryDisplay();
+    overlayWindow.setBounds(display.bounds);
+  };
+  screen.on("display-metrics-changed", updateBounds);
 }
 
-// Renderer signals it's ready — send the screenshot
-ipcMain.on("overlay:ready", () => {
-  if (overlayWindow && !overlayWindow.isDestroyed() && pendingScreenshot) {
-    overlayWindow.webContents.send("overlay:screenshot", pendingScreenshot);
-    pendingScreenshot = null;
-  }
-});
+/**
+ * Activate the overlay with a screenshot file path — instant, no flash.
+ */
+export function activateOverlay(screenshotPath: string) {
+  if (!overlayWindow || overlayWindow.isDestroyed()) return;
+  if (isActive) return;
+
+  pendingScreenshot = screenshotPath;
+
+  // Send file path to renderer; it loads via file:// and signals back when drawn
+  overlayWindow.webContents.send("overlay:screenshot", screenshotPath);
+}
+
+/**
+ * Deactivate the overlay — instant, no flash.
+ */
+export function deactivateOverlay() {
+  if (!overlayWindow || overlayWindow.isDestroyed()) return;
+
+  isActive = false;
+  pendingScreenshot = null;
+  overlayWindow.setOpacity(0);
+  overlayWindow.setIgnoreMouseEvents(true);
+  overlayWindow.webContents.send("overlay:clear");
+}
 
 // Screenshot is drawn on canvas — now safe to show
 ipcMain.on("overlay:screenshot-ready", () => {
   if (overlayWindow && !overlayWindow.isDestroyed()) {
-    overlayWindow.setSimpleFullScreen(true);
-    overlayWindow.setAlwaysOnTop(true, "screen-saver");
-    overlayWindow.show();
+    isActive = true;
+    overlayWindow.setIgnoreMouseEvents(false);
+    overlayWindow.setOpacity(1);
+    overlayWindow.focus();
   }
 });
 
-export function closeOverlayWindow() {
-  if (overlayWindow && !overlayWindow.isDestroyed()) {
-    overlayWindow.close();
-  }
-  overlayWindow = null;
-  pendingScreenshot = null;
-}
+// No longer needed but keep for compatibility
+ipcMain.on("overlay:ready", () => {});
 
-export function getOverlayWindow(): BrowserWindow | null {
-  return overlayWindow;
+export function isOverlayActive(): boolean {
+  return isActive;
 }

@@ -7,7 +7,13 @@ import {
   shell,
 } from "electron";
 import path from "node:path";
-import { initCaptureManager, startCapture } from "./capture/captureManager";
+import {
+  cleanupStaleTmpFiles,
+  cleanupTmpFile,
+  initCaptureManager,
+  startCapture,
+} from "./capture/captureManager";
+import { initOverlayWindow } from "./capture/overlayWindow";
 import { loadSettings, showPreferences } from "./capture/preferences";
 
 const PROTOCOL = "synthesis";
@@ -159,8 +165,12 @@ ipcMain.on("open-external", (_event, url: string) => {
 });
 
 app.on("ready", () => {
+  cleanupStaleTmpFiles();
   buildAppMenu();
   createWindow();
+
+  // Create persistent overlay window (invisible, click-through until activated)
+  initOverlayWindow();
 
   // Register global capture hotkey
   const settings = loadSettings();
@@ -181,4 +191,5 @@ app.on("activate", () => {
 
 app.on("will-quit", () => {
   globalShortcut.unregisterAll();
+  cleanupTmpFile();
 });
