@@ -12,11 +12,11 @@ contextBridge.exposeInMainWorld("electronAPI", {
   cancelCapture: () => {
     ipcRenderer.send("capture:cancel");
   },
-  onScreenshot: (callback: (dataUrl: string) => void) => {
+  onScreenshot: (callback: (dataUrl: string, cursorX: number, cursorY: number) => void) => {
     ipcRenderer.on(
       "overlay:screenshot",
-      (_event: Electron.IpcRendererEvent, dataUrl: string) => {
-        callback(dataUrl);
+      (_event: Electron.IpcRendererEvent, dataUrl: string, cursorX: number, cursorY: number) => {
+        callback(dataUrl, cursorX, cursorY);
       }
     );
   },

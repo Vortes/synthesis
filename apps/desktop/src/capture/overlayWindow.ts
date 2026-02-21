@@ -123,11 +123,15 @@ function getOverlayHTML(): string {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     });
 
-    window.electronAPI.onScreenshot(function(filePath) {
+    window.electronAPI.onScreenshot(function(filePath, cursorX, cursorY) {
       screenshotImage = new Image();
       screenshotImage.onload = function() {
         screenshotReady = true;
         canvas.style.cursor = "none";
+        if (cursorX != null && cursorY != null) {
+          mouseX = cursorX;
+          mouseY = cursorY;
+        }
         resizeCanvas();
         window.electronAPI.screenshotReady();
       };
@@ -269,7 +273,11 @@ export function setOverlayScreenshot(screenshotPath: string) {
   if (!overlayWindow || overlayWindow.isDestroyed()) return;
 
   pendingScreenshot = screenshotPath;
-  overlayWindow.webContents.send("overlay:screenshot", screenshotPath);
+  const cursor = screen.getCursorScreenPoint();
+  const bounds = overlayWindow.getBounds();
+  const cursorX = cursor.x - bounds.x;
+  const cursorY = cursor.y - bounds.y;
+  overlayWindow.webContents.send("overlay:screenshot", screenshotPath, cursorX, cursorY);
 }
 
 /**
