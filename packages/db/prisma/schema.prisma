@@ -18,14 +18,16 @@ model User {
 }
 
 model Capture {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  imageUrl  String
-  tags      Json     @default("[]")
-  sourceUrl String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String                         @id @default(cuid())
+  userId      String
+  user        User                           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  imageUrl    String
+  descriptionUrl String?
+  embedding   Unsupported("vector(1536)")?
+  analyzedAt  DateTime?
+  sourceUrl   String?
+  createdAt   DateTime                       @default(now())
+  updatedAt   DateTime                       @updatedAt
 
   @@index([userId])
 }

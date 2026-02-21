@@ -7,7 +7,7 @@ export interface CaptureCardData {
   id: string;
   imageUrl: string;
   createdAt: Date | string;
-  tags: unknown;
+  analyzedAt?: Date | string | null;
 }
 
 interface CaptureCardProps {
@@ -18,6 +18,8 @@ interface CaptureCardProps {
 
 export function CaptureCard({ capture, onDelete, isDeleting }: CaptureCardProps) {
   const date = new Date(capture.createdAt);
+  const ageMs = Date.now() - date.getTime();
+  const isAnalyzing = !capture.analyzedAt && ageMs < 2 * 60 * 1000;
 
   return (
     <div
@@ -26,12 +28,17 @@ export function CaptureCard({ capture, onDelete, isDeleting }: CaptureCardProps)
         isDeleting && "pointer-events-none opacity-40",
       )}
     >
-      <div className="aspect-video overflow-hidden bg-muted">
+      <div className="relative aspect-video overflow-hidden bg-muted">
         <img
           src={capture.imageUrl}
           alt="UI capture"
           className="h-full w-full object-cover"
         />
+        {isAnalyzing && (
+          <div className="absolute inset-x-0 bottom-0 h-1 overflow-hidden bg-muted">
+            <div className="h-full w-1/3 animate-pulse rounded-full bg-primary/40" />
+          </div>
+        )}
       </div>
 
       <div className="px-3 py-2">

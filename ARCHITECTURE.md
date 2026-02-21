@@ -15,7 +15,7 @@
 | API Layer | tRPC | Type-safe API shared between web and desktop. Defined once, consumed by both apps. |
 | Database | Prisma + Neon (PostgreSQL) | Serverless Postgres. Prisma runs server-side only (in Next.js), never in Electron. |
 | Image Storage | Uploadthing | Screenshots stored via Uploadthing. Metadata (tags, colors, etc.) stored in Neon. |
-| AI Analysis | OpenAI GPT-4o | Vision model for auto-tagging captures (component type, colors, typography, tags). |
+| AI Analysis | OpenAI GPT-4o + text-embedding-3-small | Vision model describes captures; embeddings enable semantic search via pgvector. |
 | Auth | Clerk | Managed auth for both web and Electron. |
 
 ---
@@ -255,7 +255,7 @@ GitHub Releases
 | Image storage | Uploadthing | Built for Next.js/T3. Simple API, handles presigned URLs. Good for MVP. |
 | Auth | Clerk | Managed auth, fast setup, good free tier. Works in both web and Electron. |
 | Capture method | Global (Electron overlay) | Full screen capture via Electron overlay window. Requires screen capture permissions. |
-| Data model | Lean — 2 tables (User, Capture) | Tags as JSON field. No collections/flows for MVP. Expand when patterns emerge. |
+| Data model | Lean — 2 tables (User, Capture) | AI description + pgvector embedding per capture. No collections/flows for MVP. Expand when patterns emerge. |
 
 ---
 
@@ -312,11 +312,11 @@ Integrate Uploadthing for image uploads. Build a basic library page that display
 
 **Verify:** Upload an image (manual file picker for now) from the web app. It appears in the library grid with a timestamp. Same library visible from Electron. Delete a capture, it disappears.
 
-### Phase 6 — AI Tagging
+### Phase 6 — AI Analysis + Semantic Search (RAG)
 
-Send uploaded screenshots to OpenAI GPT-4o Vision. Parse the response into structured tags (component type, colors, description). Store in the `tags` JSON field. Display tags on captures in the library. Add basic search/filter by tags.
+Each uploaded screenshot is analyzed by GPT-4o Vision (generates a rich text description of the UI) and embedded with text-embedding-3-small (1536-dim vector stored via pgvector). The library search bar uses cosine similarity to find captures by natural language query (e.g. "dark login page with social buttons"). No tags or badges on capture cards — discovery is powered entirely by the search bar. Capture cards show clean image + date with a subtle loading indicator during analysis.
 
-**Verify:** Upload a screenshot of any UI. Tags auto-populate within a few seconds. Search "button" or "navbar" and matching captures surface.
+**Verify:** Upload a screenshot — it appears in the grid immediately, analysis runs in background. Type a natural language query in the search bar — matching captures surface ranked by relevance. Clear search to return to chronological grid.
 
 ### Phase 7 — Global Capture (Electron Overlay)
 

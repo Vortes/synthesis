@@ -13,13 +13,20 @@ export function UploadCaptureButton() {
   const createCapture = trpc.capture.create.useMutation({
     onSuccess: () => utils.capture.list.invalidate(),
   });
+  const analyzeCapture = trpc.capture.analyze.useMutation({
+    onSuccess: () => utils.capture.list.invalidate(),
+  });
 
   const { startUpload } = useUploadThing("imageUploader", {
     onUploadBegin: () => setIsUploading(true),
     onClientUploadComplete: async (res) => {
       const file = res?.[0];
       if (file?.serverData?.imageUrl) {
-        await createCapture.mutateAsync({ imageUrl: file.serverData.imageUrl });
+        const capture = await createCapture.mutateAsync({
+          imageUrl: file.serverData.imageUrl,
+        });
+        // Fire analysis in background — don't await
+        analyzeCapture.mutate({ id: capture.id });
       }
       setIsUploading(false);
     },
