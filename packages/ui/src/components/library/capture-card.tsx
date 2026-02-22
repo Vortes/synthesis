@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { Bookmark, MoreHorizontal, Activity } from "lucide-react";
 import { cn } from "../../lib/utils";
 
 export interface CaptureCardData {
@@ -8,58 +8,144 @@ export interface CaptureCardData {
   imageUrl: string;
   createdAt: Date | string;
   analyzedAt?: Date | string | null;
+  source?: { favicon?: string; domain: string };
+  tags?: string[];
 }
 
 interface CaptureCardProps {
   capture: CaptureCardData;
+  variant?: "default" | "dark" | "flow";
+  flowSteps?: number;
   onDelete?: (id: string) => void;
+  onBookmark?: (id: string) => void;
   isDeleting?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
-export function CaptureCard({ capture, onDelete, isDeleting }: CaptureCardProps) {
-  const date = new Date(capture.createdAt);
-  const ageMs = Date.now() - date.getTime();
-  const isAnalyzing = !capture.analyzedAt && ageMs < 2 * 60 * 1000;
-
+export function CaptureCard({
+  capture,
+  variant = "default",
+  flowSteps,
+  onDelete,
+  onBookmark,
+  isDeleting,
+  className,
+  style,
+}: CaptureCardProps) {
   return (
     <div
       className={cn(
-        "group relative overflow-hidden rounded-lg border border-border bg-card transition-opacity",
+        "group relative overflow-hidden rounded-xl cursor-pointer transition-all duration-[250ms]",
+        variant === "default" && "bg-surface-warm shadow-card hover:-translate-y-0.5 hover:shadow-card-hover",
+        variant === "dark" && "bg-dark-bg shadow-card-dark hover:-translate-y-0.5 hover:shadow-card-hover",
+        variant === "flow" && "bg-surface-cool shadow-card-flow hover:-translate-y-px",
         isDeleting && "pointer-events-none opacity-40",
+        className
       )}
+      style={style}
     >
-      <div className="relative aspect-video overflow-hidden bg-muted">
+      {/* Preview area */}
+      <div className="relative w-full aspect-[4/3] overflow-hidden bg-surface-cool">
         <img
           src={capture.imageUrl}
           alt="UI capture"
           className="h-full w-full object-cover"
         />
-        {isAnalyzing && (
-          <div className="absolute inset-x-0 bottom-0 h-1 overflow-hidden bg-muted">
-            <div className="h-full w-1/3 animate-pulse rounded-full bg-primary/40" />
+
+        {/* Flow badge */}
+        {variant === "flow" && flowSteps && (
+          <div className="absolute bottom-2 left-2 flex items-center gap-1 px-2 py-1 bg-ink/75 backdrop-blur-sm rounded-[5px] font-mono text-[10px] font-normal text-dark-text tracking-[0.04em]">
+            <Activity className="w-2.5 h-2.5" />
+            {flowSteps} steps
           </div>
         )}
+
+        {/* Hover action buttons */}
+        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          {onBookmark && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onBookmark(capture.id);
+              }}
+              className="w-7 h-7 rounded-md border-0 bg-white/90 backdrop-blur-sm flex items-center justify-center cursor-pointer text-ink-mid transition-all duration-200 hover:bg-white hover:text-ink"
+              aria-label="Bookmark capture"
+            >
+              <Bookmark className="w-[13px] h-[13px]" />
+            </button>
+          )}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete?.(capture.id);
+            }}
+            className="w-7 h-7 rounded-md border-0 bg-white/90 backdrop-blur-sm flex items-center justify-center cursor-pointer text-ink-mid transition-all duration-200 hover:bg-white hover:text-ink"
+            aria-label="More actions"
+          >
+            <MoreHorizontal className="w-[13px] h-[13px]" />
+          </button>
+        </div>
       </div>
 
-      <div className="px-3 py-2">
-        <p className="text-xs text-muted-foreground">
-          {date.toLocaleDateString(undefined, {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-          })}
-        </p>
-      </div>
+      {/* Card info */}
+      <div
+        className={cn(
+          "px-3.5 py-3",
+          variant === "dark" && "bg-dark-bg"
+        )}
+      >
+        {/* Source */}
+        {capture.source && (
+          <div
+            className={cn(
+              "flex items-center gap-1.5 font-mono text-[11px] font-normal tracking-[0.02em] mb-1",
+              variant === "dark" ? "text-dark-text-muted" : "text-ink-mid"
+            )}
+          >
+            <span
+              className="w-3 h-3 rounded-sm shrink-0"
+              style={{ background: capture.source.favicon ?? "#a09b93" }}
+            />
+            {capture.source.domain}
+          </div>
+        )}
 
-      {onDelete && (
-        <button
-          onClick={() => onDelete(capture.id)}
-          className="absolute right-2 top-2 rounded-md bg-background/80 p-1.5 text-muted-foreground opacity-0 backdrop-blur-sm transition-opacity hover:text-destructive group-hover:opacity-100"
-          aria-label="Delete capture"
-        >
-          <Trash2 className="h-4 w-4" />
-        </button>
-      )}
+        {/* Tags */}
+        {capture.tags && capture.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-1.5">
+            {capture.tags.map((tag) => (
+              <span
+                key={tag}
+                className={cn(
+                  "font-mono text-[10px] font-light tracking-[0.04em] px-[7px] py-[3px] rounded",
+                  variant === "dark"
+                    ? "text-dark-text-muted bg-white/[0.06]"
+                    : "text-ink-quiet bg-surface-cool"
+                )}
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Fallback: show date if no source/tags */}
+        {!capture.source && (!capture.tags || capture.tags.length === 0) && (
+          <p
+            className={cn(
+              "font-mono text-[11px] font-light",
+              variant === "dark" ? "text-dark-text-muted" : "text-ink-quiet"
+            )}
+          >
+            {new Date(capture.createdAt).toLocaleDateString(undefined, {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

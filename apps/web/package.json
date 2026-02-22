@@ -13,6 +13,7 @@
     "@clerk/themes": "^2.4.55",
     "@synthesis/api": "workspace:^",
     "@synthesis/db": "workspace:^",
+    "@synthesis/styles": "workspace:*",
     "@synthesis/ui": "workspace:*",
     "@tanstack/react-query": "^5",
     "@trpc/client": "^11",

@@ -26,6 +26,9 @@ importers:
       '@synthesis/api':
         specifier: workspace:^
         version: link:../../packages/api
+      '@synthesis/styles':
+        specifier: workspace:*
+        version: link:../../packages/styles
       '@synthesis/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -93,6 +96,9 @@ importers:
       '@synthesis/db':
         specifier: workspace:^
         version: link:../../packages/db
+      '@synthesis/styles':
+        specifier: workspace:*
+        version: link:../../packages/styles
       '@synthesis/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -186,6 +192,8 @@ importers:
       typescript:
         specifier: ^5.7.3
         version: 5.9.3
+
+  packages/styles: {}
 
   packages/ui:
     dependencies:

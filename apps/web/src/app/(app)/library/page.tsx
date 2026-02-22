@@ -1,14 +1,49 @@
 "use client";
 
-import { useState } from "react";
-import { Search, X } from "lucide-react";
-import { CaptureGrid } from "@synthesis/ui";
+import { useState, useCallback } from "react";
+import { SearchGateway, CaptureGrid } from "@synthesis/ui";
+import type { CaptureCardData } from "@synthesis/ui";
 import { trpc } from "@/trpc/client";
 import { UploadCaptureButton } from "@/components/upload-capture-button";
 
+function groupCapturesByDate(captures: CaptureCardData[]) {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const groups: Record<string, CaptureCardData[]> = {};
+  const groupOrder: string[] = [];
+
+  for (const capture of captures) {
+    const date = new Date(capture.createdAt);
+    const captureDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+    let label: string;
+    if (captureDay.getTime() === today.getTime()) {
+      label = "Today";
+    } else if (captureDay.getTime() === yesterday.getTime()) {
+      label = "Yesterday";
+    } else {
+      label = captureDay.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+    }
+
+    if (!groups[label]) {
+      groups[label] = [];
+      groupOrder.push(label);
+    }
+    groups[label].push(capture);
+  }
+
+  return groupOrder.map((label) => ({ label, captures: groups[label] }));
+}
+
 export default function LibraryPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
   const utils = trpc.useUtils();
 
@@ -31,30 +66,23 @@ export default function LibraryPage() {
     },
   });
 
+  const handleSearch = useCallback((query: string) => {
+    setActiveSearch(query);
+  }, []);
+
   const displayCaptures = activeSearch ? searchResults : captures;
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setActiveSearch(searchQuery.trim());
-  };
-
-  const clearSearch = () => {
-    setSearchQuery("");
-    setActiveSearch("");
-  };
-
-  if (isLoading && !activeSearch) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted-foreground border-t-primary" />
-      </div>
-    );
-  }
+  const groups = activeSearch
+    ? [{ label: "Results", captures: displayCaptures }]
+    : groupCapturesByDate(displayCaptures);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
+    <>
+      {/* Search gateway */}
+      <SearchGateway onSearch={handleSearch} />
+
+      {/* Toolbar */}
+      <div className="flex items-center justify-between px-10 pt-2">
+        <p className="font-mono text-[11px] font-light text-ink-whisper">
           {activeSearch
             ? `${searchResults.length} result${searchResults.length !== 1 ? "s" : ""}`
             : `${captures.length} capture${captures.length !== 1 ? "s" : ""}`}
@@ -62,40 +90,31 @@ export default function LibraryPage() {
         <UploadCaptureButton />
       </div>
 
-      <form onSubmit={handleSearch} className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder='Search captures... (e.g. "dark login page")'
-          className="w-full rounded-md border border-input bg-background py-2 pl-10 pr-10 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        />
-        {(searchQuery || activeSearch) && (
-          <button
-            type="button"
-            onClick={clearSearch}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        )}
-      </form>
-
-      {isSearching && (
-        <div className="flex items-center justify-center py-10">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground border-t-primary" />
-          <span className="ml-2 text-sm text-muted-foreground">Searching...</span>
+      {/* Loading state */}
+      {isLoading && !activeSearch && (
+        <div className="flex items-center justify-center py-20">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-ink-whisper border-t-orange" />
         </div>
       )}
 
-      {!isSearching && (
-        <CaptureGrid
-          captures={displayCaptures}
-          onDelete={(id) => deleteCapture.mutate({ id })}
-          deletingId={deletingId}
-        />
+      {/* Searching state */}
+      {isSearching && (
+        <div className="flex items-center justify-center py-20">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-ink-whisper border-t-orange" />
+          <span className="ml-2 text-sm text-ink-quiet">Searching...</span>
+        </div>
       )}
-    </div>
+
+      {/* Library grid */}
+      {!isLoading && !isSearching && (
+        <div className="flex-1 overflow-y-auto px-10 pt-3 pb-10 scrollbar-thin">
+          <CaptureGrid
+            groups={groups}
+            onDelete={(id) => deleteCapture.mutate({ id })}
+            deletingId={deletingId}
+          />
+        </div>
+      )}
+    </>
   );
 }

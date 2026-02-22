@@ -1,5 +1,4 @@
 import { Sidebar } from "./sidebar";
-import { Topbar } from "./topbar";
 import { cn } from "../../lib/utils";
 
 interface AppShellProps {
@@ -8,24 +7,26 @@ interface AppShellProps {
   children: React.ReactNode;
   className?: string;
   userButton?: React.ReactNode;
+  platform?: "web" | "desktop";
 }
 
 export function AppShell({
   activePath,
-  pageTitle,
   children,
   className,
   userButton,
+  platform = "web",
 }: AppShellProps) {
+  const isDesktop = platform === "desktop";
+
   return (
-    <div className="flex h-screen bg-background text-foreground">
-      <Sidebar activePath={activePath} />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Topbar title={pageTitle} userButton={userButton} />
-        <main className={cn("flex-1 overflow-auto p-6", className)}>
-          {children}
-        </main>
-      </div>
+    <div className="flex h-screen bg-edge text-foreground">
+      <Sidebar activePath={activePath} platform={platform} />
+      <main className={cn("flex-1 flex flex-col bg-surface overflow-hidden", className)}>
+        {/* Drag region for frameless window (desktop only) */}
+        {isDesktop && <div className="h-[52px] shrink-0 drag-region" />}
+        {children}
+      </main>
     </div>
   );
 }

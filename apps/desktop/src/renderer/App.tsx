@@ -71,7 +71,7 @@ function SignInScreen() {
       {status === "idle" && (
         <button
           onClick={handleSignIn}
-          className="rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+          className="rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90"
         >
           Sign in with browser
         </button>
@@ -79,7 +79,7 @@ function SignInScreen() {
 
       {status === "waiting" && (
         <div className="flex flex-col items-center gap-2">
-          <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted-foreground border-t-primary" />
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-ink-whisper border-t-orange" />
           <p className="text-sm text-muted-foreground">
             Waiting for sign-in...
           </p>
@@ -94,7 +94,7 @@ function SignInScreen() {
               setStatus("idle");
               setErrorMsg("");
             }}
-            className="rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+            className="rounded-md bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90"
           >
             Try again
           </button>
@@ -114,11 +114,7 @@ export function App() {
       <SignedIn>
         <AuthTokenProvider>
           <TRPCProvider>
-            <AppShell
-              activePath="/library"
-              pageTitle="Library"
-              userButton={<UserButton afterSignOutUrl="" />}
-            >
+            <AppShell activePath="/library" platform="desktop">
               <LibraryView />
             </AppShell>
           </TRPCProvider>

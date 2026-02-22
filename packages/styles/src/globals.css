@@ -1,0 +1,124 @@
+/* ---- Synthesis Design Tokens ---- */
+/* Single source of truth. Both apps/web and apps/desktop import this file. */
+
+@theme {
+  /* ---- Surface tones ---- */
+  --color-surface: #f0eeeb;
+  --color-surface-cool: #eceae7;
+  --color-surface-warm: #f4f2ef;
+  --color-edge: #e5e3df;
+
+  /* ---- Ink tones ---- */
+  --color-ink: #1c1b19;
+  --color-ink-mid: #5e5b55;
+  --color-ink-quiet: #a09b93;
+  --color-ink-whisper: #c8c4bc;
+
+  /* ---- Sculpted shadows (as colors for box-shadow references) ---- */
+  --color-shadow-dark: #C4BDB4;
+  --color-shadow-light: #FFFCF8;
+
+  /* ---- Accent ---- */
+  --color-orange: #e8663c;
+  --color-orange-hover: #d45a32;
+  --color-orange-soft: rgba(232,102,60,0.08);
+
+  /* ---- Dark card variant ---- */
+  --color-dark-bg: #1c1b19;
+  --color-dark-text: #f0eeeb;
+  --color-dark-text-muted: rgba(240,238,235,0.55);
+
+  /* ---- Semantic mappings ---- */
+  --color-background: #f0eeeb;
+  --color-foreground: #1c1b19;
+
+  --color-card: #f4f2ef;
+  --color-card-foreground: #1c1b19;
+
+  --color-primary: #e8663c;
+  --color-primary-foreground: #FFFCF8;
+
+  --color-secondary: #eceae7;
+  --color-secondary-foreground: #5e5b55;
+
+  --color-muted: #eceae7;
+  --color-muted-foreground: #a09b93;
+
+  --color-accent: #eceae7;
+  --color-accent-foreground: #1c1b19;
+
+  --color-destructive: #dc3545;
+  --color-destructive-foreground: #FFFCF8;
+
+  --color-border: #e5e3df;
+  --color-input: #e5e3df;
+  --color-ring: #e8663c;
+
+  --color-sidebar: #f0eeeb;
+  --color-sidebar-foreground: #1c1b19;
+
+  /* ---- Radius ---- */
+  --radius: 0.625rem;
+
+  /* ---- Typography ---- */
+  --font-sans: 'Outfit', sans-serif;
+  --font-serif: 'Fraunces', serif;
+  --font-mono: 'Geist Mono', monospace;
+
+  /* ---- Shadows ---- */
+  --shadow-card: 0 0 0 1px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04);
+  --shadow-card-hover: 0 0 0 1px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06), 0 16px 40px rgba(0,0,0,0.05);
+  --shadow-card-flow: inset 0 1px 3px rgba(0,0,0,0.04), inset 0 0 0 1px rgba(0,0,0,0.02), 0 1px 0 rgba(255,255,255,0.7);
+  --shadow-card-dark: 0 0 0 1px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.12), 0 8px 24px rgba(0,0,0,0.16), 0 16px 40px rgba(0,0,0,0.12);
+  --shadow-sculpted-v: -1px 0 0 #C4BDB4, 1px 0 0 #FFFCF8;
+  --shadow-sculpted-h: 0 -1px 0 #C4BDB4, 0 1px 0 #FFFCF8;
+  --shadow-key-badge: 0 0 0 1px rgba(0,0,0,0.04), 0 1px 0 rgba(0,0,0,0.06);
+
+  /* ---- Animation ---- */
+  --animate-fade-in-up: fade-in-up 0.55s ease both;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+body {
+  background-color: var(--color-edge);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Grain texture overlay ---- */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+/* ---- Custom scrollbar ---- */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: var(--color-ink-whisper);
+  border-radius: 3px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-quiet);
+}

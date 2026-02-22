@@ -9,7 +9,8 @@ export { Card, CardHeader, CardTitle, CardContent } from "./components/ui/card";
 export { AppShell } from "./components/shell/app-shell";
 export { Sidebar } from "./components/shell/sidebar";
 export { Topbar } from "./components/shell/topbar";
+export { SearchGateway } from "./components/shell/search-gateway";
 
 // Library components
 export { CaptureCard, type CaptureCardData } from "./components/library/capture-card";
-export { CaptureGrid } from "./components/library/capture-grid";
+export { CaptureGrid, type CaptureGroup } from "./components/library/capture-grid";
