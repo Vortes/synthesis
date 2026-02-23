@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { analyzeCapture, generateEmbedding, uploadDescription } from "../lib/analyze";
+import { analyzeCapture } from "../lib/analyze";
 
 export const captureRouter = createTRPCRouter({
   list: protectedProcedure.query(async ({ ctx }) => {
@@ -76,69 +76,54 @@ export const captureRouter = createTRPCRouter({
       });
       if (!capture) return { success: false };
 
-      const description = await analyzeCapture(capture.imageUrl);
-      if (!description) return { success: false };
+      const tags = await analyzeCapture(capture.imageUrl);
+      if (!tags) return { success: false };
 
-      const descriptionUrl = await uploadDescription(description, capture.id);
-
-      const embedding = await generateEmbedding(description);
-      if (!embedding) {
-        // Save descriptionUrl even if embedding fails
-        await ctx.db.capture.update({
-          where: { id: capture.id },
-          data: { descriptionUrl, analyzedAt: new Date() },
-        });
-        return { success: true };
-      }
-
-      // Use raw SQL for the vector column
-      const vectorStr = `[${embedding.join(",")}]`;
-      await ctx.db.$executeRawUnsafe(
-        `UPDATE "Capture" SET "descriptionUrl" = $1, "embedding" = $2::vector, "analyzedAt" = NOW() WHERE "id" = $3`,
-        descriptionUrl,
-        vectorStr,
-        capture.id
-      );
+      await ctx.db.capture.update({
+        where: { id: capture.id },
+        data: {
+          tags,
+          analyzedAt: new Date(),
+        },
+      });
 
       return { success: true };
     }),
 
-  search: protectedProcedure
-    .input(z.object({ query: z.string().min(1) }))
-    .query(async ({ ctx, input }) => {
-      const user = await ctx.db.user.findUnique({
-        where: { clerkId: ctx.userId },
+  reanalyzeAll: protectedProcedure.mutation(async ({ ctx }) => {
+    const user = await ctx.db.user.findUnique({
+      where: { clerkId: ctx.userId },
+    });
+    if (!user) return { processed: 0, failed: 0 };
+
+    const captures = await ctx.db.capture.findMany({
+      where: { userId: user.id, tags: { isEmpty: true } },
+    });
+
+    let processed = 0;
+    let failed = 0;
+
+    for (const capture of captures) {
+      const tags = await analyzeCapture(capture.imageUrl);
+      if (!tags) {
+        failed++;
+        continue;
+      }
+
+      await ctx.db.capture.update({
+        where: { id: capture.id },
+        data: {
+          tags,
+          analyzedAt: new Date(),
+        },
       });
-      if (!user) return [];
 
-      const queryEmbedding = await generateEmbedding(input.query);
-      if (!queryEmbedding) return [];
+      processed++;
 
-      const vectorStr = `[${queryEmbedding.join(",")}]`;
-      const results = await ctx.db.$queryRawUnsafe<
-        Array<{
-          id: string;
-          imageUrl: string;
-          descriptionUrl: string | null;
-          analyzedAt: Date | null;
-          sourceUrl: string | null;
-          createdAt: Date;
-          updatedAt: Date;
-          userId: string;
-          similarity: number;
-        }>
-      >(
-        `SELECT "id", "imageUrl", "descriptionUrl", "analyzedAt", "sourceUrl", "createdAt", "updatedAt", "userId",
-                1 - ("embedding" <=> $1::vector) as similarity
-         FROM "Capture"
-         WHERE "userId" = $2 AND "embedding" IS NOT NULL
-           AND 1 - ("embedding" <=> $1::vector) > 0.3
-         ORDER BY "embedding" <=> $1::vector
-         LIMIT 20`,
-        vectorStr,
-        user.id
-      );
+      // Rate limit: 1.5 second delay between calls
+      await new Promise((r) => setTimeout(r, 1500));
+    }
 
-      return results;
-    }),
+    return { processed, failed };
+  }),
 });

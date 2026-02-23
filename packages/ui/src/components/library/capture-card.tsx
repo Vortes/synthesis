@@ -8,7 +8,6 @@ export interface CaptureCardData {
   imageUrl: string;
   createdAt: Date | string;
   analyzedAt?: Date | string | null;
-  source?: { favicon?: string; domain: string };
   tags?: string[];
 }
 
@@ -45,7 +44,7 @@ export function CaptureCard({
       )}
       style={style}
     >
-      {/* Preview area */}
+      {/* Preview area — full card, no info strip */}
       <div className="relative w-full aspect-[4/3] overflow-hidden bg-surface-cool">
         <img
           src={capture.imageUrl}
@@ -86,65 +85,6 @@ export function CaptureCard({
             <MoreHorizontal className="w-[13px] h-[13px]" />
           </button>
         </div>
-      </div>
-
-      {/* Card info */}
-      <div
-        className={cn(
-          "px-3.5 py-3",
-          variant === "dark" && "bg-dark-bg"
-        )}
-      >
-        {/* Source */}
-        {capture.source && (
-          <div
-            className={cn(
-              "flex items-center gap-1.5 font-mono text-[11px] font-normal tracking-[0.02em] mb-1",
-              variant === "dark" ? "text-dark-text-muted" : "text-ink-mid"
-            )}
-          >
-            <span
-              className="w-3 h-3 rounded-sm shrink-0"
-              style={{ background: capture.source.favicon ?? "#a09b93" }}
-            />
-            {capture.source.domain}
-          </div>
-        )}
-
-        {/* Tags */}
-        {capture.tags && capture.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1.5">
-            {capture.tags.map((tag) => (
-              <span
-                key={tag}
-                className={cn(
-                  "font-mono text-[10px] font-light tracking-[0.04em] px-[7px] py-[3px] rounded",
-                  variant === "dark"
-                    ? "text-dark-text-muted bg-white/[0.06]"
-                    : "text-ink-quiet bg-surface-cool"
-                )}
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Fallback: show date if no source/tags */}
-        {!capture.source && (!capture.tags || capture.tags.length === 0) && (
-          <p
-            className={cn(
-              "font-mono text-[11px] font-light",
-              variant === "dark" ? "text-dark-text-muted" : "text-ink-quiet"
-            )}
-          >
-            {new Date(capture.createdAt).toLocaleDateString(undefined, {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}
-          </p>
-        )}
       </div>
     </div>
   );

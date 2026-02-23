@@ -34,7 +34,7 @@ export function CaptureGrid({ groups, onDelete, onBookmark, deletingId }: Captur
           <div className="font-mono text-[11px] font-light tracking-[0.06em] text-ink-whisper mb-3.5">
             {group.label}
           </div>
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-4">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-4">
             {group.captures.map((capture, cardIndex) => (
               <CaptureCard
                 key={capture.id}

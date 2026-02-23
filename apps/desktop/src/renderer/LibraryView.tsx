@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SearchGateway, CaptureGrid } from "@synthesis/ui";
-import type { CaptureCardData } from "@synthesis/ui";
-import { Upload } from "lucide-react";
+import type { CaptureCardData, CaptureGroup } from "@synthesis/ui";
+import { ImageIcon, Upload } from "lucide-react";
 import { trpc } from "./trpc";
 
-function groupCapturesByDate(captures: CaptureCardData[]) {
+function groupCapturesByDate(captures: CaptureCardData[]): CaptureGroup[] {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const yesterday = new Date(today);
@@ -34,15 +34,16 @@ function groupCapturesByDate(captures: CaptureCardData[]) {
       groups[label] = [];
       groupOrder.push(label);
     }
-    groups[label].push(capture);
+    groups[label]!.push(capture);
   }
 
-  return groupOrder.map((label) => ({ label, captures: groups[label] }));
+  return groupOrder.map((label) => ({ label, captures: groups[label]! }));
 }
 
 export function LibraryView() {
+  const [query, setQuery] = useState("");
+  const [activeTags, setActiveTags] = useState<string[]>([]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [activeSearch, setActiveSearch] = useState("");
   const utils = trpc.useUtils();
 
   const { data: captures = [], isLoading } = trpc.capture.list.useQuery();
@@ -63,25 +64,84 @@ export function LibraryView() {
     return cleanup;
   }, [utils]);
 
-  const handleSearch = useCallback((query: string) => {
-    setActiveSearch(query);
-  }, []);
+  // Derive suggested tag pills from the library
+  const suggestedTags = useMemo(() => {
+    if (!captures.length) return [];
 
-  const groups = activeSearch
-    ? [{ label: "Results", captures }]
-    : groupCapturesByDate(captures);
+    if (!query.trim() && activeTags.length === 0) {
+      // Default: most frequent first-tags (screen types) from user's library
+      const firstTags = captures
+        .map((c) => c.tags?.[0])
+        .filter(Boolean) as string[];
+      const counts = new Map<string, number>();
+      for (const tag of firstTags) {
+        counts.set(tag, (counts.get(tag) ?? 0) + 1);
+      }
+      return [...counts.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([tag]) => tag);
+    }
+
+    // While typing: find tags that match the current query
+    const q = query.toLowerCase();
+    const allTags = new Set(captures.flatMap((c) => c.tags ?? []));
+    return [...allTags]
+      .filter((tag) => tag.includes(q) && !activeTags.includes(tag))
+      .slice(0, 6);
+  }, [captures, query, activeTags]);
+
+  // Client-side filtering — synchronous, no spinner
+  const filteredCaptures = useMemo(() => {
+    let results = captures;
+
+    // AND logic: capture must have ALL active tags
+    if (activeTags.length > 0) {
+      results = results.filter((c) =>
+        activeTags.every((tag) => c.tags?.includes(tag)),
+      );
+    }
+
+    // Every word in the query must match some tag
+    const trimmed = query.trim().toLowerCase();
+    if (trimmed) {
+      const words = trimmed.split(/\s+/);
+      results = results.filter((c) =>
+        words.every((word) => c.tags?.some((t) => t.includes(word))),
+      );
+    }
+
+    return results;
+  }, [captures, query, activeTags]);
+
+  const isFiltering = query.trim().length > 0 || activeTags.length > 0;
+
+  // Build groups for CaptureGrid
+  const groups: CaptureGroup[] = useMemo(() => {
+    if (isFiltering) {
+      return filteredCaptures.length > 0
+        ? [{ label: "", captures: filteredCaptures }]
+        : [];
+    }
+    return groupCapturesByDate(filteredCaptures);
+  }, [isFiltering, filteredCaptures]);
+
+  const totalCount = captures.length;
+  const filteredCount = filteredCaptures.length;
+
+  // Count label
+  const countLabel = isFiltering
+    ? `${filteredCount} of ${totalCount} captures`
+    : `${totalCount} capture${totalCount === 1 ? "" : "s"}`;
 
   return (
     <>
       {/* Search gateway */}
-      <SearchGateway onSearch={handleSearch} />
-
-      {/* Toolbar */}
-      <div className="flex items-center justify-between px-10 pt-2">
-        <p className="font-mono text-[11px] font-light text-ink-whisper">
-          {captures.length} capture{captures.length !== 1 ? "s" : ""}
-        </p>
-      </div>
+      <SearchGateway
+        onQueryChange={setQuery}
+        onActiveTagsChange={setActiveTags}
+        suggestedTags={suggestedTags}
+      />
 
       {/* Loading state */}
       {isLoading && (
@@ -93,23 +153,41 @@ export function LibraryView() {
       {/* Library grid */}
       {!isLoading && (
         <div className="flex-1 overflow-y-auto px-10 pt-3 pb-10 scrollbar-thin">
-          <CaptureGrid
-            groups={groups}
-            onDelete={(id) => deleteCapture.mutate({ id })}
-            deletingId={deletingId}
-          />
+          {/* Count label */}
+          {totalCount > 0 && (
+            <p className="font-mono text-[11px] font-light tracking-[0.06em] text-ink-whisper mb-5">
+              {countLabel}
+            </p>
+          )}
 
-          {captures.length === 0 && (
-            <div className="flex items-center gap-2 rounded-xl bg-surface-warm px-4 py-3 text-sm text-ink-quiet shadow-card">
-              <Upload className="h-4 w-4 shrink-0" />
-              <span>
-                Press{" "}
-                <kbd className="rounded border border-edge bg-surface-cool px-1.5 py-0.5 text-xs font-mono">
-                  Cmd+Shift+S
-                </kbd>{" "}
-                to capture a screen region, or use the web app to upload
-              </span>
+          {/* No matches state — filtering returned nothing but captures exist */}
+          {isFiltering && filteredCount === 0 && totalCount > 0 ? (
+            <div className="flex flex-col items-center justify-center gap-3 py-20 text-ink-quiet">
+              <ImageIcon className="h-10 w-10" />
+              <p className="text-sm">No matches</p>
             </div>
+          ) : (
+            <>
+              <CaptureGrid
+                groups={groups}
+                onDelete={(id) => deleteCapture.mutate({ id })}
+                deletingId={deletingId}
+              />
+
+              {/* Desktop-specific empty state with capture shortcut hint */}
+              {totalCount === 0 && (
+                <div className="flex items-center gap-2 rounded-xl bg-surface-warm px-4 py-3 text-sm text-ink-quiet shadow-card">
+                  <Upload className="h-4 w-4 shrink-0" />
+                  <span>
+                    Press{" "}
+                    <kbd className="rounded border border-edge bg-surface-cool px-1.5 py-0.5 text-xs font-mono">
+                      Cmd+Shift+S
+                    </kbd>{" "}
+                    to capture a screen region, or use the web app to upload
+                  </span>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

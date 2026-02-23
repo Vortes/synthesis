@@ -18,16 +18,16 @@ model User {
 }
 
 model Capture {
-  id          String                         @id @default(cuid())
+  id          String    @id @default(cuid())
   userId      String
-  user        User                           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   imageUrl    String
-  descriptionUrl String?
-  embedding   Unsupported("vector(1536)")?
+  description String?
+  tags        String[]  @default([])
   analyzedAt  DateTime?
   sourceUrl   String?
-  createdAt   DateTime                       @default(now())
-  updatedAt   DateTime                       @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([userId])
 }

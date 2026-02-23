@@ -1,11 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { UTApi } from "uploadthing/server";
 import { db } from "@synthesis/db";
-import {
-  analyzeCapture,
-  generateEmbedding,
-  uploadDescription,
-} from "@synthesis/api";
+import { analyzeCapture } from "@synthesis/api";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -64,33 +60,16 @@ export async function POST(req: Request) {
       },
     });
 
-    // Fire-and-forget: analyze + embed
+    // Fire-and-forget: analyze and store tags
     (async () => {
       try {
-        const description = await analyzeCapture(imageUrl);
-        if (!description) return;
+        const tags = await analyzeCapture(imageUrl);
+        if (!tags) return;
 
-        const descriptionUrl = await uploadDescription(
-          description,
-          capture.id
-        );
-        const embedding = await generateEmbedding(description);
-
-        if (!embedding) {
-          await db.capture.update({
-            where: { id: capture.id },
-            data: { descriptionUrl, analyzedAt: new Date() },
-          });
-          return;
-        }
-
-        const vectorStr = `[${embedding.join(",")}]`;
-        await db.$executeRawUnsafe(
-          `UPDATE "Capture" SET "descriptionUrl" = $1, "embedding" = $2::vector, "analyzedAt" = NOW() WHERE "id" = $3`,
-          descriptionUrl,
-          vectorStr,
-          capture.id
-        );
+        await db.capture.update({
+          where: { id: capture.id },
+          data: { tags, analyzedAt: new Date() },
+        });
       } catch (err) {
         console.error("[upload] Background analysis failed:", err);
       }
