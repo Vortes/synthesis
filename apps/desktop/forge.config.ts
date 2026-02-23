@@ -5,6 +5,7 @@ import { VitePlugin } from "@electron-forge/plugin-vite";
 const config: ForgeConfig = {
   packagerConfig: {
     asar: true,
+    extraResource: ["./native/build/Release/ax_url_reader.node"],
     protocols: [
       {
         name: "Synthesis",

@@ -6,4 +6,9 @@ export default defineConfig({
       process.env.VITE_WEB_URL || "http://localhost:3000"
     ),
   },
+  build: {
+    rollupOptions: {
+      external: [/\.node$/],
+    },
+  },
 });

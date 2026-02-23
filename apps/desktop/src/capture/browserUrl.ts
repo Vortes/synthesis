@@ -128,7 +128,10 @@ function decompressLz4Block(input: Buffer, uncompressedSize: number): Buffer {
  *
  * jsonlz4 format: 8-byte magic ("mozLz40\0") + 4-byte LE size + lz4 block data
  */
-function getFirefoxSessionUrl(browserName: string): string | null {
+function getFirefoxSessionUrl(
+  browserName: string,
+  windowTitle?: string,
+): string | null {
   const appDir = FIREFOX_PROFILE_DIRS[browserName];
   if (!appDir) return null;
 
@@ -170,26 +173,49 @@ function getFirefoxSessionUrl(browserName: string): string | null {
       const windows = session.windows;
       if (!windows?.length) continue;
 
-      const selWinIdx = Math.max(
-        0,
-        Math.min((session.selectedWindow || 1) - 1, windows.length - 1),
-      );
-      const win = windows[selWinIdx];
-      const tabs = win.tabs;
-      if (!tabs?.length) continue;
+      // Search ALL tabs across ALL windows for a title match.
+      // We require a title to match against — without one we can't
+      // know which tab was captured, so we return null rather than
+      // guessing with the "selected" tab (which is often wrong).
+      if (!windowTitle) return null;
 
-      const selTabIdx = Math.max(
-        0,
-        Math.min((win.selected || 1) - 1, tabs.length - 1),
-      );
-      const tab = tabs[selTabIdx];
-      const entries = tab.entries;
-      if (!entries?.length) continue;
-
-      const url = entries[entries.length - 1].url;
-      if (url && typeof url === "string") {
-        return url;
+      const titleLower = windowTitle.toLowerCase();
+      for (const win of windows) {
+        const tabs = win.tabs;
+        if (!tabs?.length) continue;
+        for (const tab of tabs) {
+          const entries = tab.entries;
+          if (!entries?.length) continue;
+          const lastEntry = entries[entries.length - 1];
+          if (
+            lastEntry.title &&
+            typeof lastEntry.title === "string" &&
+            lastEntry.url &&
+            typeof lastEntry.url === "string"
+          ) {
+            // macOS truncates window titles, so CGWindowListCopyWindowInfo
+            // may return a suffix of the full page title (e.g. "Vortes/synthesis"
+            // instead of "Comparing main...screenshot · Vortes/synthesis").
+            // Match if the session title equals, ends with, or contains the window title.
+            const sessionTitleLower = lastEntry.title.toLowerCase();
+            if (
+              sessionTitleLower === titleLower ||
+              sessionTitleLower.endsWith(titleLower) ||
+              sessionTitleLower.includes(titleLower)
+            ) {
+              console.log(
+                "[browserUrl] Matched tab by title:",
+                lastEntry.title,
+              );
+              return lastEntry.url;
+            }
+          }
+        }
       }
+      console.log(
+        "[browserUrl] No title match in session file for:",
+        windowTitle,
+      );
     } catch {
       continue;
     }
@@ -208,6 +234,7 @@ export function isBrowser(appName: string): boolean {
 
 export async function getBrowserUrl(
   appName: string,
+  windowTitle?: string,
 ): Promise<string | null> {
   // 1. Chromium-based / Safari — use native AppleScript (reliable)
   const chromiumScript = BROWSER_SCRIPTS[appName];
@@ -217,11 +244,11 @@ export async function getBrowserUrl(
     return validateUrl(raw);
   }
 
-  // 2. Firefox-based browsers — read session recovery file (reliable,
-  //    may be up to ~15s stale). The Accessibility API approach doesn't
-  //    work from Electron's process context, so we skip it entirely.
+  // 2. Firefox-based browsers — read session recovery file.
+  //    When windowTitle is provided, we match against tab titles
+  //    to find the correct tab instead of relying on "selected" state.
   if (FIREFOX_BASED_NAMES.has(appName.toLowerCase())) {
-    const url = getFirefoxSessionUrl(appName.toLowerCase());
+    const url = getFirefoxSessionUrl(appName.toLowerCase(), windowTitle);
     if (url) {
       console.log("[browserUrl] Got URL from session file:", url);
       return validateUrl(url) ?? url;

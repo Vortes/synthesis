@@ -2,6 +2,7 @@ import { execFile } from "child_process";
 import path from "path";
 import { app } from "electron";
 import { getBrowserUrl, isBrowser } from "./browserUrl";
+import { readAxBrowserUrl } from "./axUrlReader";
 
 export interface WindowContext {
   sourceApp: string | null;
@@ -23,10 +24,20 @@ function validateBareUrl(raw: string): string | null {
   return null;
 }
 
+// Bundle IDs for Firefox-based browsers (used to decide AX addon vs AppleScript)
+const FIREFOX_BUNDLE_IDS = new Set([
+  "org.mozilla.firefox",
+  "org.mozilla.firefoxdeveloperedition",
+  "app.zen-browser.zen",
+  "net.waterfox.waterfox",
+  "io.gitlab.librewolf-community",
+]);
+
 interface SwiftWindowInfo {
   appName: string | null;
   bundleId: string | null;
   windowTitle: string | null;
+  pid: number | null;
   browserUrl?: string | null;
 }
 
@@ -49,7 +60,10 @@ function runSwiftBinary(
       String(rect.height),
     ];
 
-    execFile(binaryPath, args, (error, stdout) => {
+    execFile(binaryPath, args, (error, stdout, stderr) => {
+      if (stderr) {
+        console.log("[windowContext] Swift stderr:", stderr);
+      }
       if (error) {
         reject(error);
         return;
@@ -83,12 +97,26 @@ export async function resolveWindowContext(
         return NULL_CONTEXT;
       }
 
-      // For Firefox-based browsers, the Swift binary reads the URL bar
-      // directly via the Accessibility API (osascript can't do this from
-      // Electron's process context). For Chromium/Safari, use AppleScript.
-      const sourceUrl = windowInfo.browserUrl
-        ? validateBareUrl(windowInfo.browserUrl)
-        : await getBrowserUrl(appName);
+      let sourceUrl: string | null = null;
+
+      // For Firefox-based browsers, use the native AX addon (runs in-process,
+      // so it has Electron's TCC accessibility permission).
+      // Falls back to session file if the addon fails.
+      if (windowInfo.bundleId && FIREFOX_BUNDLE_IDS.has(windowInfo.bundleId) && windowInfo.pid) {
+        console.log("[windowContext] Firefox-based browser detected, trying native AX addon...");
+        const axUrl = readAxBrowserUrl(windowInfo.pid, windowInfo.windowTitle ?? undefined);
+        if (axUrl) {
+          console.log("[windowContext] Got URL from native AX addon:", axUrl);
+          sourceUrl = validateBareUrl(axUrl);
+        } else {
+          console.log("[windowContext] AX addon returned null, falling back to session file...");
+          sourceUrl = await getBrowserUrl(appName, windowInfo.windowTitle ?? undefined);
+        }
+      } else {
+        // Chromium/Safari — use AppleScript via getBrowserUrl
+        sourceUrl = await getBrowserUrl(appName, windowInfo.windowTitle ?? undefined);
+      }
+
       console.log("[windowContext] sourceUrl result:", sourceUrl);
 
       // For browsers, use the window title (page title) instead of the

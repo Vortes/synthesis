@@ -25,6 +25,7 @@ struct WindowMatch {
     let appName: String
     let bundleId: String?
     let windowTitle: String?
+    let pid: Int32?
     let overlapRatio: CGFloat
 }
 
@@ -74,9 +75,10 @@ for window in windowList {
     }
     let ratio = area / selectedArea
 
-    // Resolve bundle ID from PID
+    // Get PID and resolve bundle ID
+    let pid = window[kCGWindowOwnerPID as String] as? Int32
     var bundleId: String? = nil
-    if let pid = window[kCGWindowOwnerPID as String] as? Int32 {
+    if let pid = pid {
         bundleId = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier
     }
 
@@ -87,6 +89,7 @@ for window in windowList {
         appName: ownerName,
         bundleId: bundleId,
         windowTitle: (windowTitle?.isEmpty == false) ? windowTitle : nil,
+        pid: pid,
         overlapRatio: ratio
     )
 
@@ -105,78 +108,6 @@ for window in windowList {
 // Use threshold match if found, otherwise fall back to frontmost overlapping window
 let finalMatch = bestMatch ?? fallbackMatch
 
-// --- Firefox-based browser URL reading via Accessibility API ---
-// For Firefox-based browsers, read the URL bar combo box value directly.
-let firefoxBundleIds: Set<String> = [
-    "org.mozilla.firefox",
-    "org.mozilla.firefoxdeveloperedition",
-    "app.zen-browser.zen",
-    "net.waterfox.waterfox",
-    "io.gitlab.librewolf-community",
-]
-
-func readFirefoxUrl(pid: Int32) -> String? {
-    let axApp = AXUIElementCreateApplication(pid)
-
-    var windowValue: CFTypeRef?
-    guard AXUIElementCopyAttributeValue(axApp, kAXWindowsAttribute as CFString, &windowValue) == .success,
-          let windows = windowValue as? [AXUIElement],
-          let window = windows.first else {
-        return nil
-    }
-
-    // Walk: window -> group(s) -> toolbar with description "Navigation" -> group -> combo box -> value
-    func getChildren(_ element: AXUIElement) -> [AXUIElement] {
-        var value: CFTypeRef?
-        AXUIElementCopyAttributeValue(element, kAXChildrenAttribute as CFString, &value)
-        return (value as? [AXUIElement]) ?? []
-    }
-
-    func getRole(_ element: AXUIElement) -> String {
-        var value: CFTypeRef?
-        AXUIElementCopyAttributeValue(element, kAXRoleAttribute as CFString, &value)
-        return (value as? String) ?? ""
-    }
-
-    func getDescription(_ element: AXUIElement) -> String {
-        var value: CFTypeRef?
-        AXUIElementCopyAttributeValue(element, kAXDescriptionAttribute as CFString, &value)
-        return (value as? String) ?? ""
-    }
-
-    func getValue(_ element: AXUIElement) -> String? {
-        var value: CFTypeRef?
-        AXUIElementCopyAttributeValue(element, kAXValueAttribute as CFString, &value)
-        return value as? String
-    }
-
-    // window -> first group
-    let groups = getChildren(window).filter { getRole($0) == "AXGroup" }
-    guard let group1 = groups.first else { return nil }
-
-    // group -> toolbar with description "Navigation"
-    let toolbars = getChildren(group1).filter { getRole($0) == "AXToolbar" }
-    var navToolbar: AXUIElement? = nil
-    for tb in toolbars {
-        if getDescription(tb) == "Navigation" {
-            navToolbar = tb
-            break
-        }
-    }
-    // Fallback to first toolbar if none has "Navigation" description
-    guard let toolbar = navToolbar ?? toolbars.first else { return nil }
-
-    // toolbar -> group -> combo box
-    let tbGroups = getChildren(toolbar).filter { getRole($0) == "AXGroup" }
-    guard let tbGroup = tbGroups.first else { return nil }
-
-    let comboBoxes = getChildren(tbGroup).filter { getRole($0) == "AXComboBox" }
-    guard let comboBox = comboBoxes.first else { return nil }
-
-    guard let urlValue = getValue(comboBox), !urlValue.isEmpty else { return nil }
-    return urlValue
-}
-
 // Build output dictionary
 var output: [String: Any] = [:]
 
@@ -184,27 +115,12 @@ if let match = finalMatch {
     output["appName"] = match.appName
     output["bundleId"] = match.bundleId as Any
     output["windowTitle"] = match.windowTitle as Any
-
-    // If the matched window is a Firefox-based browser, read the URL bar
-    if let bundleId = match.bundleId, firefoxBundleIds.contains(bundleId) {
-        // Need the PID to create an AXUIElement
-        // Re-scan to find it (we already have it from the window list)
-        for window in windowList {
-            guard let ownerName = window[kCGWindowOwnerName as String] as? String,
-                  ownerName == match.appName,
-                  let pid = window[kCGWindowOwnerPID as String] as? Int32 else {
-                continue
-            }
-            if let url = readFirefoxUrl(pid: pid) {
-                output["browserUrl"] = url
-            }
-            break
-        }
-    }
+    output["pid"] = match.pid as Any
 } else {
     output["appName"] = NSNull()
     output["bundleId"] = NSNull()
     output["windowTitle"] = NSNull()
+    output["pid"] = NSNull()
 }
 
 // Serialize and print JSON

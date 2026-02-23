@@ -1,2 +1,5 @@
 # Swift compiled binary (source is committed; binary is not)
 swift-helpers/window-info
+
+# Native addon build artifacts
+native/build/
