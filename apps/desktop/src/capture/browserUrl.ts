@@ -71,7 +71,7 @@ function validateUrl(raw: string): string | null {
     return trimmed;
   }
   // Some browsers show bare domains without the protocol
-  if (/^[a-zA-Z0-9][\w.-]+\.[a-zA-Z]{2,}(\/.*)?$/.test(trimmed)) {
+  if (/^[a-zA-Z0-9][\w.-]*\.[a-zA-Z]{2,}(\/.*)?$/.test(trimmed)) {
     return `https://${trimmed}`;
   }
   return null;

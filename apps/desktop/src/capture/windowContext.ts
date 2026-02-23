@@ -18,7 +18,7 @@ function validateBareUrl(raw: string): string | null {
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("file://")) {
     return trimmed;
   }
-  if (/^[a-zA-Z0-9][\w.-]+\.[a-zA-Z]{2,}(\/.*)?$/.test(trimmed)) {
+  if (/^[a-zA-Z0-9][\w.-]*\.[a-zA-Z]{2,}(\/.*)?$/.test(trimmed)) {
     return `https://${trimmed}`;
   }
   return null;

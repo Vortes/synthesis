@@ -56,7 +56,7 @@ export async function analyzeCapture(
 
 	try {
 		const response = await client.chat.completions.create({
-			model: "",
+			model: "gpt-4o-mini",
 			max_tokens: 300,
 			messages: [
 				{
