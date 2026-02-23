@@ -25,6 +25,7 @@ model Capture {
   description String?
   tags        String[]  @default([])
   analyzedAt  DateTime?
+  sourceApp   String?
   sourceUrl   String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

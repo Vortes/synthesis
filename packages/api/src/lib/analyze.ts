@@ -48,13 +48,15 @@ Return exactly this format:
   "tags": ["tag1", "tag2", ...]
 }`
 
-export async function analyzeCapture(imageUrl: string): Promise<string[] | null> {
+export async function analyzeCapture(
+	imageUrl: string,
+): Promise<string[] | null> {
 	const client = getClient()
 	if (!client) return null
 
 	try {
 		const response = await client.chat.completions.create({
-			model: "gpt-4o-mini",
+			model: "",
 			max_tokens: 300,
 			messages: [
 				{

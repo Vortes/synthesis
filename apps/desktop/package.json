@@ -5,7 +5,8 @@
   "main": ".vite/build/main.js",
   "scripts": {
     "dev": "electron-forge start",
-    "build": "electron-forge make",
+    "build:swift": "swiftc swift-helpers/window-info.swift -o swift-helpers/window-info -framework CoreGraphics -framework AppKit",
+    "build": "pnpm build:swift && electron-forge make",
     "package": "electron-forge package"
   },
   "dependencies": {

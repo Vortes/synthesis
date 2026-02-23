@@ -33,6 +33,8 @@ export async function POST(req: Request) {
 
     const formData = await req.formData();
     const file = formData.get("image");
+    const sourceApp = formData.get("sourceApp");
+    const sourceUrl = formData.get("sourceUrl");
     if (!(file instanceof File)) {
       return Response.json(
         { error: "No image provided" },
@@ -57,6 +59,8 @@ export async function POST(req: Request) {
       data: {
         userId: user.id,
         imageUrl,
+        sourceApp: typeof sourceApp === "string" ? sourceApp : null,
+        sourceUrl: typeof sourceUrl === "string" ? sourceUrl : null,
       },
     });
 

@@ -11,6 +11,7 @@ import {
 } from "./overlayWindow";
 import { uploadCapture } from "./uploader";
 import { showThumbnail } from "./thumbnailManager";
+import { resolveWindowContext } from "./windowContext";
 
 let mainWindow: BrowserWindow | null = null;
 let capturedScreenshot: Electron.NativeImage | null = null;
@@ -178,13 +179,17 @@ async function handleRegionSelected(rect: {
 
     showThumbnail(cropped.toDataURL());
 
-    const token = await requestAuthToken();
+    const [context, token] = await Promise.all([
+      resolveWindowContext(rect),
+      requestAuthToken(),
+    ]);
+
     if (!token) {
       console.error("[capture] No auth token available");
       return;
     }
 
-    const result = await uploadCapture(pngBuffer, token);
+    const result = await uploadCapture(pngBuffer, token, context);
     if (result) {
       if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.webContents.send("capture:complete");
