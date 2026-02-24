@@ -109,7 +109,7 @@ Used for embossed dividers and score marks.
 
 ### Type rules
 
-The brand name is always set in Geist Mono at 13px, weight 400, with 0.06em letter-spacing. Always lowercase. Never Curate. Never SYNTHESIS.
+The brand name is always set in Geist Mono at 13px, weight 400, with 0.06em letter-spacing. Always lowercase. Never Curate. Never CURATE.
 
 Headlines use Fraunces at 300 weight with tight tracking (-0.025em). The italic variant is reserved for emphasis within headlines — the word or phrase that carries the meaning. ("you can _actually use._")
 

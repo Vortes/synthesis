@@ -49,7 +49,7 @@ for window in windowList {
     }
 
     // Filter: exclude our own app
-    if ownerName == "Synthesis" {
+    if ownerName == "curate" {
         continue
     }
 

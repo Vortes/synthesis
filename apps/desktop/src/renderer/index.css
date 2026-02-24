@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "@synthesis/styles/globals.css";
+@import "@curate/styles/globals.css";
 
 @source "../../../../packages/ui/src";
 
