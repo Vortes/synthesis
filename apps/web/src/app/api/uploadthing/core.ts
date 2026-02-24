@@ -4,7 +4,7 @@ import { UploadThingError } from "uploadthing/server";
 
 const f = createUploadthing();
 
-export const ourFileRouter = {
+export const ourFileRouter: FileRouter = {
   imageUploader: f(
     { image: { maxFileSize: "16MB", maxFileCount: 1 } },
     { awaitServerData: true }
@@ -17,6 +17,6 @@ export const ourFileRouter = {
     .onUploadComplete(({ file }) => {
       return { imageUrl: file.ufsUrl };
     }),
-} satisfies FileRouter;
+};
 
 export type OurFileRouter = typeof ourFileRouter;
