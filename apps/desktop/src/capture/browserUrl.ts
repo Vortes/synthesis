@@ -42,7 +42,7 @@ function runOsascript(script: string): Promise<string | null> {
 
     const tmpFile = path.join(
       os.tmpdir(),
-      `synthesis-osascript-${Date.now()}.scpt`,
+      `curate-osascript-${Date.now()}.scpt`,
     );
     fs.writeFileSync(tmpFile, script, "utf-8");
 

@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
-import { AppShell } from "@synthesis/ui";
+import { AppShell } from "@curate/ui";
 
 const pageTitles: Record<string, string> = {
   "/library": "Library",
@@ -11,7 +11,7 @@ const pageTitles: Record<string, string> = {
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const pageTitle = pageTitles[pathname] ?? "Synthesis";
+  const pageTitle = pageTitles[pathname] ?? "Curate";
 
   return (
     <AppShell

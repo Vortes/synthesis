@@ -58,7 +58,7 @@ export function Sidebar({
 			<div className="px-6 mb-8 flex items-center gap-2">
 				<div className="w-1.5 h-1.5 rounded-full bg-orange shrink-0" />
 				<span className="font-mono text-[13px] font-normal tracking-[0.06em] text-ink">
-					synthesis
+					curate
 				</span>
 			</div>
 

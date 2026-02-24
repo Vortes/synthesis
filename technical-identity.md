@@ -1,16 +1,16 @@
-# synthesis — Brand Identity
+# curate — Brand Identity
 
 ---
 
 ## The Brand in One Sentence
 
-synthesis looks and sounds like a tool made by someone with taste, for someone with taste — quiet enough to disappear, sharp enough to be remembered.
+curate looks and sounds like a tool made by someone with taste, for someone with taste — quiet enough to disappear, sharp enough to be remembered.
 
 ---
 
 ## Brand Concept: The Pressed Surface
 
-The visual identity of synthesis is built on a single metaphor: a physical surface that things are pressed into. Not a screen. Not a dashboard. A material.
+The visual identity of curate is built on a single metaphor: a physical surface that things are pressed into. Not a screen. Not a dashboard. A material.
 
 This idea shows up everywhere. Text is debossed — visible only through light and shadow, like letterpress on heavy stock. Dividers are score marks pressed into the surface. Cards sit inset or raised, never floating in space. Light falls across the page the way it would fall across paper on a desk.
 
@@ -109,7 +109,7 @@ Used for embossed dividers and score marks.
 
 ### Type rules
 
-The brand name is always set in Geist Mono at 13px, weight 400, with 0.06em letter-spacing. Always lowercase. Never Synthesis. Never SYNTHESIS.
+The brand name is always set in Geist Mono at 13px, weight 400, with 0.06em letter-spacing. Always lowercase. Never Curate. Never SYNTHESIS.
 
 Headlines use Fraunces at 300 weight with tight tracking (-0.025em). The italic variant is reserved for emphasis within headlines — the word or phrase that carries the meaning. ("you can _actually use._")
 
@@ -137,7 +137,7 @@ The bands are masked so they fade from soft at the top of the page to full stren
 
 ## Depth System
 
-synthesis uses three levels of physical depth. Every element on the page belongs to one of them.
+curate uses three levels of physical depth. Every element on the page belongs to one of them.
 
 ### Level 1: Pressed in (debossed)
 
@@ -204,7 +204,7 @@ The restraint is the point. On a page of warm neutrals and embossed textures, a 
 
 ## Photography & Imagery Direction
 
-synthesis does not use stock photography, illustrations, or decorative imagery on its marketing surfaces. The visual richness comes from the surface itself — the grain, the light, the shadows, the depth.
+curate does not use stock photography, illustrations, or decorative imagery on its marketing surfaces. The visual richness comes from the surface itself — the grain, the light, the shadows, the depth.
 
 If imagery is ever needed (blog posts, social media), it should follow these rules:
 
@@ -220,7 +220,7 @@ If imagery is ever needed (blog posts, social media), it should follow these rul
 
 _(Detailed in the Tone & Voice Guide — this is the quick reference.)_
 
-synthesis speaks like a sharp designer friend. Confident, concise, warm, precise, understated. It assumes the reader is competent. It never over-explains. It speaks from inside the problem, not above it.
+curate speaks like a sharp designer friend. Confident, concise, warm, precise, understated. It assumes the reader is competent. It never over-explains. It speaks from inside the problem, not above it.
 
 **Texture words:** quiet · fast · confident · effortless · personal
 
@@ -228,7 +228,7 @@ synthesis speaks like a sharp designer friend. Confident, concise, warm, precise
 
 **Words we avoid:** powerful, seamless, leverage, cutting-edge, solution, revolutionize, AI-powered (as headline)
 
-**Formatting:** Always lowercase _synthesis_. No exclamation marks. Short paragraphs. Em dashes for asides. Periods for weight. Fragments when they land harder than sentences.
+**Formatting:** Always lowercase _curate_. No exclamation marks. Short paragraphs. Em dashes for asides. Periods for weight. Fragments when they land harder than sentences.
 
 ---
 
@@ -241,4 +241,4 @@ Before any design or copy ships, ask:
 - Would you notice the grain if you weren't looking for it?
 - Does the type hierarchy work through weight and space alone — no color, no decoration?
 - Is the design quiet enough to disappear, and sharp enough to be remembered?
-- Could this have come from any other product? Or is it unmistakably synthesis?
+- Could this have come from any other product? Or is it unmistakably curate?

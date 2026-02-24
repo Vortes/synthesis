@@ -1,6 +1,6 @@
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
-import { appRouter } from "@synthesis/api";
-import { db } from "@synthesis/db";
+import { appRouter } from "@curate/api";
+import { db } from "@curate/db";
 import { auth } from "@clerk/nextjs/server";
 
 const corsHeaders = {

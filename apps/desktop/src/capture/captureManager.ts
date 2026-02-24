@@ -35,7 +35,7 @@ export function cleanupStaleTmpFiles() {
     const tmpDir = os.tmpdir();
     const files = fs.readdirSync(tmpDir);
     for (const file of files) {
-      if (file.startsWith("synthesis-capture-") && file.endsWith(".png")) {
+      if (file.startsWith("curate-capture-") && file.endsWith(".png")) {
         try {
           fs.unlinkSync(path.join(tmpDir, file));
         } catch {
@@ -116,7 +116,7 @@ export async function startCapture() {
   try {
     tmpScreenshotPath = path.join(
       os.tmpdir(),
-      `synthesis-capture-${Date.now()}.png`
+      `curate-capture-${Date.now()}.png`
     );
 
     await new Promise<void>((resolve, reject) => {

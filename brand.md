@@ -21,14 +21,14 @@ It's not a screenshot manager. Screenshots are dumb rectangles. This tool unders
 It's not a collaboration-first tool. Sharing is a feature, not the purpose. The primary value is personal. If it's not useful for a single designer working alone, no amount of team features saves it. Team functionality is a layer on top of something that already works for one person.
 It's not another app demanding attention. No feed. No notifications that matter. No streak mechanics. No "discover what other designers are saving." It's a tool that's powerful when you need it and invisible when you don't.
 
-Brand name: Synthesis (WIP)
+Brand name: Curate (WIP)
 Tagline: "Your design memory, always organized."
 Positioning: Personal reference library that sits between screenshot tools (fast but dumb) and curated libraries like Mobbin (smart but not yours).
 Five pillars: Effortless Capture, Ambient Intelligence, Instant Retrieval, Personal by Default, Quiet Presence.
 Voice: Confident, concise, warm, precise, understated. Sharp colleague energy — assumes you're competent, never over-explains.
-Core message: Synthesis turns everything you notice into a reference library you can actually use.
+Core message: Curate turns everything you notice into a reference library you can actually use.
 
-# synthesis — Product Strategy
+# curate — Product Strategy
 
 > Your design library should build itself.
 
@@ -42,13 +42,13 @@ The problem isn't finding inspiration — it's that the moment between seeing so
 
 When it's time to actually design something, you start from scratch. You Google "best onboarding flows 2025." You open Mobbin and scroll. You ask a colleague, "have you seen any good examples of..." You rebuild context you already had, from an experience you already lived through.
 
-**synthesis exists because the best design references are the ones you personally encountered, in context, while using real products** — not curated galleries of someone else's screenshots.
+**curate exists because the best design references are the ones you personally encountered, in context, while using real products** — not curated galleries of someone else's screenshots.
 
 ---
 
-## What synthesis Is
+## What curate Is
 
-synthesis is a desktop tool for designers that captures UI components and user flows from any application — web or native — and organizes them into a personal, AI-sorted reference library.
+curate is a desktop tool for designers that captures UI components and user flows from any application — web or native — and organizes them into a personal, AI-sorted reference library.
 
 It works like this:
 
@@ -60,7 +60,7 @@ It works like this:
 6. AI analyzes the screenshot and tags it: component type, color palette, typography, platform, visual style
 7. When you need a reference later, you search your own collection — by component, by color, by flow, by project
 
-There's also a "Record Flow" mode: you tell synthesis you're about to walk through something (an onboarding sequence, a checkout, an account setup), and it automatically screenshots each distinct screen as you navigate. When you stop, it stitches them into an ordered flow you can step through later.
+There's also a "Record Flow" mode: you tell curate you're about to walk through something (an onboarding sequence, a checkout, an account setup), and it automatically screenshots each distinct screen as you navigate. When you stop, it stitches them into an ordered flow you can step through later.
 
 The key difference from everything else: **this is your library, built from your experience, organized by AI, available when you need it.**
 
@@ -87,7 +87,7 @@ Designers at startups and mid-size companies who are responsible for end-to-end 
 
 ### Secondary: Design Leads & Managers
 
-People who oversee design teams and want to maintain shared reference libraries. They care about design consistency and want their team to start from established patterns rather than reinventing solutions. For them, synthesis becomes a shared team brain — everyone captures references, everyone benefits.
+People who oversee design teams and want to maintain shared reference libraries. They care about design consistency and want their team to start from established patterns rather than reinventing solutions. For them, curate becomes a shared team brain — everyone captures references, everyone benefits.
 
 ### Tertiary: Founders & Product Managers
 
@@ -97,7 +97,7 @@ Non-designers who frequently encounter apps and interfaces they admire, and want
 
 ## The Competitive Landscape
 
-The design reference space has several players, but they all solve a piece of the problem, not the whole thing. This creates the gap synthesis fills.
+The design reference space has several players, but they all solve a piece of the problem, not the whole thing. This creates the gap curate fills.
 
 ### Mobbin — The Curated Library
 
@@ -107,7 +107,7 @@ Mobbin is the market leader in design reference, with 300,000+ screens from 1,00
 
 **What Mobbin doesn't do:** Mobbin is a read-only catalog of someone else's curation. You can't capture your own finds. You can't clip a component from a random website you stumbled on. You can't record a live flow you're personally walking through. You're limited to what their team has cataloged. They do allow screenshot uploads to collections, but only iOS/Android screenshots — and there's no AI analysis, no component detection, no flow recording.
 
-**synthesis's relationship to Mobbin:** Not a direct competitor. Mobbin is a reference encyclopedia. synthesis is your personal notebook. Many users will use both — Mobbin for broad research, synthesis for personal capture and retrieval. Over time, synthesis could become a replacement as personal libraries grow rich enough to be self-sufficient.
+**curate's relationship to Mobbin:** Not a direct competitor. Mobbin is a reference encyclopedia. curate is your personal notebook. Many users will use both — Mobbin for broad research, curate for personal capture and retrieval. Over time, curate could become a replacement as personal libraries grow rich enough to be self-sufficient.
 
 ### Eagle — The Local Asset Manager
 
@@ -117,7 +117,7 @@ Eagle is a $29.95 one-time purchase desktop app for organizing all visual assets
 
 **What Eagle doesn't do:** Eagle is a general-purpose file manager. It doesn't understand UI. It can't detect components. It can't auto-tag a screenshot as "navbar" or "onboarding step 3 of 5." It has no AI analysis. It can't record flows. It treats a UI screenshot the same as a photo of a sunset.
 
-**synthesis's relationship to Eagle:** synthesis is Eagle rebuilt specifically for UI/UX, with AI intelligence about what it's looking at. Eagle is for people who organize everything. synthesis is for designers who want their UI references to organize themselves.
+**curate's relationship to Eagle:** curate is Eagle rebuilt specifically for UI/UX, with AI intelligence about what it's looking at. Eagle is for people who organize everything. curate is for designers who want their UI references to organize themselves.
 
 ### Visily — The Screenshot-to-Wireframe Tool
 
@@ -127,7 +127,7 @@ Visily captures screenshots and converts them into editable wireframes. It has a
 
 **What Visily doesn't do:** Visily is a wireframing tool, not a reference library. Every screenshot is a starting point for a new design, not a reference to revisit. There's no AI tagging, no searchable library, no flow recording, no organization by component type. It also only works in browsers — not native apps.
 
-**synthesis's relationship to Visily:** synthesis takes Visily's component-level capture concept and combines it with Eagle's organizational power and Mobbin's design-aware categorization — then adds AI to glue it together.
+**curate's relationship to Visily:** curate takes Visily's component-level capture concept and combines it with Eagle's organizational power and Mobbin's design-aware categorization — then adds AI to glue it together.
 
 ### Bookmarkify / Cosmos / Kosmik — Visual Bookmark Managers
 
@@ -137,7 +137,7 @@ These tools save web pages visually with screenshots and let you tag and organiz
 
 ### The Actual Competitor: The Screenshots Folder
 
-Honestly, this is what synthesis is really competing against. The unspoken truth is that most designers' "reference system" is ⌘+Shift+4 into a folder they never open again. The bar to beat isn't Mobbin — it's the path of least resistance. synthesis has to be faster and easier than taking a screenshot and doing nothing with it.
+Honestly, this is what curate is really competing against. The unspoken truth is that most designers' "reference system" is ⌘+Shift+4 into a folder they never open again. The bar to beat isn't Mobbin — it's the path of least resistance. curate has to be faster and easier than taking a screenshot and doing nothing with it.
 
 ---
 
@@ -147,7 +147,7 @@ Three things make this moment right:
 
 **1. AI Vision models are finally good enough.** Two years ago, you couldn't reliably send a UI screenshot to an AI and get back structured data about component types, color palettes, typography, and layout patterns. Now you can. Claude, GPT-4V, and Gemini all handle this well. This is the enabling technology that makes auto-tagging possible — the thing that turns a dumb screenshot folder into an intelligent design library.
 
-**2. Designers are drowning in tools but starving for workflow integration.** The average designer's toolchain — Figma, Notion, Slack, Mobbin, Loom, Linear — involves constant context-switching. None of these tools are present at the moment of inspiration (casually browsing a competitor's app). synthesis sits at the OS level, available everywhere, capturing the moment.
+**2. Designers are drowning in tools but starving for workflow integration.** The average designer's toolchain — Figma, Notion, Slack, Mobbin, Loom, Linear — involves constant context-switching. None of these tools are present at the moment of inspiration (casually browsing a competitor's app). curate sits at the OS level, available everywhere, capturing the moment.
 
 **3. The shift from "find inspiration" to "recall experience."** Mobbin proved there's a massive market for design reference ($130/yr/user). But the next evolution isn't a bigger library curated by someone else — it's a personal library curated by your own experience, made searchable by AI. The same shift that went from "use stock photos" to "generate your own images" is happening in reference: from "browse someone's catalog" to "search your own memory."
 
@@ -169,7 +169,7 @@ When you think "that pricing table I saw on Linear's site," you should be able t
 
 ### 4. The library gets more valuable over time
 
-Unlike a bookmarking tool that gets cluttered, synthesis should get more useful the more you use it. More captures = better AI understanding of your taste = better suggestions = a richer personal design system. Your library is an asset, not a junk drawer.
+Unlike a bookmarking tool that gets cluttered, curate should get more useful the more you use it. More captures = better AI understanding of your taste = better suggestions = a richer personal design system. Your library is an asset, not a junk drawer.
 
 ### 5. Desktop-native, not browser-bound
 

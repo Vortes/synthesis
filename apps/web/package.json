@@ -1,5 +1,5 @@
 {
-  "name": "@synthesis/web",
+  "name": "@curate/web",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -11,10 +11,10 @@
   "dependencies": {
     "@clerk/nextjs": "^6.38.1",
     "@clerk/themes": "^2.4.55",
-    "@synthesis/api": "workspace:^",
-    "@synthesis/db": "workspace:^",
-    "@synthesis/styles": "workspace:*",
-    "@synthesis/ui": "workspace:*",
+    "@curate/api": "workspace:^",
+    "@curate/db": "workspace:^",
+    "@curate/styles": "workspace:*",
+    "@curate/ui": "workspace:*",
     "@tanstack/react-query": "^5",
     "@trpc/client": "^11",
     "@trpc/react-query": "^11",

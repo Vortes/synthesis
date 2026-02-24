@@ -10,7 +10,7 @@ export async function uploadCapture(
 ): Promise<{ id: string; imageUrl: string } | null> {
   try {
     // Build multipart form data manually for Electron's net module
-    const boundary = `----SynthesisBoundary${Date.now()}`;
+    const boundary = `----CurateBoundary${Date.now()}`;
     const filename = `capture-${Date.now()}.png`;
 
     const parts: Buffer[] = [];

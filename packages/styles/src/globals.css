@@ -14,6 +14,9 @@
   --color-ink-quiet: #a09b93;
   --color-ink-whisper: #c8c4bc;
 
+  /* ---- Paper (light text on dark surfaces) ---- */
+  --color-paper: #FFFCF8;
+
   /* ---- Sculpted shadows (as colors for box-shadow references) ---- */
   --color-shadow-dark: #C4BDB4;
   --color-shadow-light: #FFFCF8;
@@ -76,6 +79,10 @@
 
   /* ---- Animation ---- */
   --animate-fade-in-up: fade-in-up 0.55s ease both;
+  --animate-overlay-in: overlay-in 0.25s ease-out both;
+  --animate-overlay-out: overlay-out 0.18s ease-in both;
+  --animate-dialog-in: dialog-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-dialog-out: dialog-out 0.18s ease-in both;
 }
 
 @keyframes fade-in-up {
@@ -86,6 +93,38 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes overlay-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    scale: 0.96;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@keyframes dialog-out {
+  from {
+    opacity: 1;
+    scale: 1;
+  }
+  to {
+    opacity: 0;
+    scale: 0.96;
   }
 }
 

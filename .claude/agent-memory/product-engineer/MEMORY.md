@@ -8,6 +8,9 @@
 - **Screen coordinates vs pixel coordinates** — CGWindowListCopyWindowInfo uses points, Electron's crop uses physical pixels (scaled by display factor). Never mix them.
 - **Zen Browser process name is "zen" (lowercase)**, app name is "Zen" (not "Zen Browser"), URL bar shows bare domains without https://
 
+## Planned Features
+- [Snap Overlay (Element Detection)](./snap-overlay-feature.md) — Auto-snap screenshots to UI elements using AX tree pre-computation. Approach decided, not yet implemented. Key: new N-API function to enumerate AX elements + frames, toggle mode (Option key), depth-limited tree walk.
+
 ## Product Decisions Made
 - No user descriptions for now — pollutes keyword search results
 - AI tags are the primary search mechanism

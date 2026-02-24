@@ -14,7 +14,7 @@ export default function Footer() {
 					color: TEXT_GHOST,
 				}}
 			>
-				synthesis &mdash; 2026
+				curate &mdash; 2026
 			</p>
 			<p
 				style={{

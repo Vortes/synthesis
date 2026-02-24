@@ -19,7 +19,7 @@ export default function Nav({ mounted }: { mounted: boolean }) {
 					color: TEXT_SECONDARY,
 				}}
 			>
-				synthesis
+				curate
 			</div>
 			<ul className="flex list-none gap-9">
 				{[

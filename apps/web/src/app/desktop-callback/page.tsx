@@ -14,5 +14,5 @@ export default async function DesktopCallbackPage() {
     expiresInSeconds: 300,
   });
 
-  redirect(`synthesis://auth?token=${signInToken.token}`);
+  redirect(`curate://auth?token=${signInToken.token}`);
 }

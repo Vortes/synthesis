@@ -1,10 +1,10 @@
 {
-  "name": "synthesis",
+  "name": "curate",
   "private": true,
   "scripts": {
     "dev": "turbo dev",
-    "dev:web": "turbo dev --filter=@synthesis/web",
-    "dev:desktop": "turbo dev --filter=@synthesis/desktop",
+    "dev:web": "turbo dev --filter=@curate/web",
+    "dev:desktop": "turbo dev --filter=@curate/desktop",
     "build": "turbo build",
     "lint": "turbo lint"
   },

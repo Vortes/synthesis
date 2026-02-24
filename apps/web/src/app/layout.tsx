@@ -4,7 +4,7 @@ import { TRPCProvider } from "@/trpc/react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Synthesis",
+  title: "Curate",
   description: "Capture and organize UI references",
 };
 

@@ -1,6 +1,6 @@
-# Synthesis — Architecture & Technical Decisions
+# Curate — Architecture & Technical Decisions
 
-> Reference document for the Synthesis monorepo. Covers architecture, tech stack, data flow, deployment, and key decisions made during planning.
+> Reference document for the Curate monorepo. Covers architecture, tech stack, data flow, deployment, and key decisions made during planning.
 
 ---
 
@@ -23,7 +23,7 @@
 ## Monorepo Structure
 
 ```
-synthesis/
+curate/
 ├── package.json              # Root workspace config
 ├── pnpm-workspace.yaml       # Workspace definitions
 ├── turbo.json                # Turborepo pipeline config
@@ -38,7 +38,7 @@ synthesis/
 
 ### Package Responsibilities
 
-**`packages/ui`** — All shared React components live here. Uses shadcn/ui (React + Tailwind + Radix). Both `apps/web` and `apps/desktop` import from `@synthesis/ui`. This is the single source of truth for the design system.
+**`packages/ui`** — All shared React components live here. Uses shadcn/ui (React + Tailwind + Radix). Both `apps/web` and `apps/desktop` import from `@curate/ui`. This is the single source of truth for the design system.
 
 **`packages/api`** — tRPC router definitions and Zod input schemas. Defines the shape of every API endpoint. Imported by `apps/web` to mount as a server, and by `apps/desktop` to get type-safe client calls.
 
@@ -126,7 +126,7 @@ apps/desktop/
 ├── src/
 │   ├── main.ts                  # Main process — Node.js: shortcuts, IPC, window mgmt
 │   ├── preload.ts               # Bridge: exposes safe APIs from main to renderer via contextBridge
-│   └── renderer/                # React app — imports from @synthesis/ui
+│   └── renderer/                # React app — imports from @curate/ui
 │       ├── index.html
 │       ├── App.tsx
 │       └── ...
@@ -153,7 +153,7 @@ apps/desktop/
 shadcn/ui works in both Next.js and Electron because:
 - It's just React components + Tailwind CSS + Radix primitives
 - Electron's renderer is a Chromium browser window — all web components work identically
-- Components are set up once in `packages/ui` and imported by both apps as `@synthesis/ui`
+- Components are set up once in `packages/ui` and imported by both apps as `@curate/ui`
 
 ---
 
@@ -185,7 +185,7 @@ Next.js route groups `(marketing)` and `(app)` provide different layouts on the 
 - Deploy `apps/web` to Vercel.
 - Vercel natively resolves monorepo dependencies from `packages/*`.
 - Vercel project settings: Root directory = `apps/web`, Framework = Next.js.
-- Serves: `synthesis.app` (landing), `synthesis.app/library` (web app), `synthesis.app/api/trpc` (API).
+- Serves: `curate.app` (landing), `curate.app/library` (web app), `curate.app/api/trpc` (API).
 
 ### Electron App → GitHub Releases
 
@@ -196,8 +196,8 @@ The Electron app builds into platform-specific installers and uploads to GitHub 
 ```
 Push to main (or tag a release)
   → CI runs: electron-forge make
-  → Produces: Synthesis-x.x.x-arm64.dmg (Apple Silicon)
-  → Produces: Synthesis-x.x.x-x64.dmg (Intel Mac)
+  → Produces: Curate-x.x.x-arm64.dmg (Apple Silicon)
+  → Produces: Curate-x.x.x-x64.dmg (Intel Mac)
   → Uploads to GitHub Releases
   → Landing page "Download" button points to latest release
 ```
@@ -210,7 +210,7 @@ publishers: [
   {
     name: '@electron-forge/publisher-github',
     config: {
-      repository: { owner: 'yourname', name: 'synthesis' },
+      repository: { owner: 'yourname', name: 'curate' },
       prerelease: false,
     },
   },
@@ -224,14 +224,14 @@ publishers: [
 ### Deployment Summary
 
 ```
-synthesis.app (Vercel)
+curate.app (Vercel)
 ├── /                    → Landing page with "Download for Mac" button → GitHub Release .dmg
 ├── /library             → Web app (authenticated, same UI as desktop)
 ├── /api/trpc/*          → API consumed by both web app and Electron
 
 GitHub Releases
-└── Synthesis-x.x.x.dmg → Downloaded and installed by users
-    └── App calls synthesis.app/api/trpc for all data
+└── Curate-x.x.x.dmg → Downloaded and installed by users
+    └── App calls curate.app/api/trpc for all data
     └── Auto-updates check GitHub Releases on launch
 ```
 
@@ -267,7 +267,7 @@ Each phase produces a testable, verifiable result. Complete them in order.
 
 Scaffold root config, all packages, and both apps with placeholder content.
 
-**Verify:** `pnpm dev:web` opens Next.js on localhost. `pnpm dev:desktop` opens an Electron window. Both show a "Hello Synthesis" page using a shared component from `@synthesis/ui`.
+**Verify:** `pnpm dev:web` opens Next.js on localhost. `pnpm dev:desktop` opens an Electron window. Both show a "Hello Curate" page using a shared component from `@curate/ui`.
 
 ### Phase 2 — shadcn/ui + Shared Components
 
@@ -286,14 +286,14 @@ Add Clerk to the web app and Electron app. Implement sign-up, sign-in, and prote
 Replace the embedded Clerk `<SignIn />` in Electron with a browser-redirect flow for production use. The embedded component works in dev (localhost) but breaks in production (`file://` protocol).
 
 **Flow:**
-1. Electron opens the system browser → `synthesis.app/sign-in`
+1. Electron opens the system browser → `curate.app/sign-in`
 2. User signs in via Clerk on the web normally
-3. After sign-in, web app redirects to `synthesis://auth?token=...` (custom protocol)
-4. Electron registers the `synthesis://` protocol, receives the token, hydrates the Clerk session
+3. After sign-in, web app redirects to `curate://auth?token=...` (custom protocol)
+4. Electron registers the `curate://` protocol, receives the token, hydrates the Clerk session
 
 **Work involved:**
-- Register `synthesis://` custom protocol in Electron main process (`app.setAsDefaultProtocolClient`)
-- Add a web route that generates a handoff token and redirects to `synthesis://auth?token=...`
+- Register `curate://` custom protocol in Electron main process (`app.setAsDefaultProtocolClient`)
+- Add a web route that generates a handoff token and redirects to `curate://auth?token=...`
 - In Electron, handle the deep link, exchange the token for a Clerk session
 - Replace `<SignIn />` in desktop with an "Open browser to sign in" button
 - Handle edge cases: already signed in, token expiry, auth errors

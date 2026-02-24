@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { SearchGateway, CaptureGrid } from "@synthesis/ui";
-import type { CaptureCardData, CaptureGroup } from "@synthesis/ui";
+import { SearchGateway, CaptureGrid, CaptureDetailModal } from "@curate/ui";
+import type { CaptureCardData, CaptureGroup } from "@curate/ui";
 import { ImageIcon, Upload } from "lucide-react";
 import { trpc } from "./trpc";
 
@@ -43,7 +43,9 @@ function groupCapturesByDate(captures: CaptureCardData[]): CaptureGroup[] {
 export function LibraryView() {
   const [query, setQuery] = useState("");
   const [activeTags, setActiveTags] = useState<string[]>([]);
+  const [activeApps, setActiveApps] = useState<string[]>([]);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectedCapture, setSelectedCapture] = useState<CaptureCardData | null>(null);
   const utils = trpc.useUtils();
 
   const { data: captures = [], isLoading } = trpc.capture.list.useQuery();
@@ -63,6 +65,21 @@ export function LibraryView() {
     });
     return cleanup;
   }, [utils]);
+
+  // Full tag + app pool for autocomplete
+  const allTags = useMemo(() => {
+    const tags = new Set(captures.flatMap((c) => c.tags ?? []));
+    for (const c of captures) {
+      if (c.sourceApp) tags.add(c.sourceApp);
+    }
+    return [...tags].sort();
+  }, [captures]);
+
+  // Derive suggested app pills from the library
+  const suggestedApps = useMemo(() => {
+    const apps = new Set(captures.map((c: any) => c.sourceApp).filter(Boolean) as string[]);
+    return [...apps].sort();
+  }, [captures]);
 
   // Derive suggested tag pills from the library
   const suggestedTags = useMemo(() => {
@@ -95,6 +112,10 @@ export function LibraryView() {
   const filteredCaptures = useMemo(() => {
     let results = captures;
 
+    if (activeApps.length > 0) {
+      results = results.filter((c: any) => c.sourceApp && activeApps.includes(c.sourceApp));
+    }
+
     // AND logic: capture must have ALL active tags
     if (activeTags.length > 0) {
       results = results.filter((c) =>
@@ -102,19 +123,22 @@ export function LibraryView() {
       );
     }
 
-    // Every word in the query must match some tag
+    // Every word in the query must match some tag OR sourceApp
     const trimmed = query.trim().toLowerCase();
     if (trimmed) {
       const words = trimmed.split(/\s+/);
       results = results.filter((c) =>
-        words.every((word) => c.tags?.some((t) => t.includes(word))),
+        words.every((word) =>
+          c.tags?.some((t) => t.includes(word)) ||
+          (c.sourceApp && c.sourceApp.toLowerCase().includes(word)),
+        ),
       );
     }
 
     return results;
-  }, [captures, query, activeTags]);
+  }, [captures, query, activeTags, activeApps]);
 
-  const isFiltering = query.trim().length > 0 || activeTags.length > 0;
+  const isFiltering = query.trim().length > 0 || activeTags.length > 0 || activeApps.length > 0;
 
   // Build groups for CaptureGrid
   const groups: CaptureGroup[] = useMemo(() => {
@@ -141,6 +165,9 @@ export function LibraryView() {
         onQueryChange={setQuery}
         onActiveTagsChange={setActiveTags}
         suggestedTags={suggestedTags}
+        suggestedApps={suggestedApps}
+        allTags={allTags}
+        onActiveAppsChange={setActiveApps}
       />
 
       {/* Loading state */}
@@ -172,6 +199,7 @@ export function LibraryView() {
                 groups={groups}
                 onDelete={(id) => deleteCapture.mutate({ id })}
                 deletingId={deletingId}
+                onCardClick={setSelectedCapture}
               />
 
               {/* Desktop-specific empty state with capture shortcut hint */}
@@ -191,6 +219,15 @@ export function LibraryView() {
           )}
         </div>
       )}
+
+      <CaptureDetailModal
+        capture={selectedCapture}
+        onClose={() => setSelectedCapture(null)}
+        onDelete={(id) => {
+          deleteCapture.mutate({ id });
+          setSelectedCapture(null);
+        }}
+      />
     </>
   );
 }

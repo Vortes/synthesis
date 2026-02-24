@@ -27,7 +27,7 @@ export default function Hero({ mounted }: { mounted: boolean }) {
 						transition: "opacity 2s ease 0.5s, transform 2s ease 0.5s",
 					}}
 				>
-					synthesis
+					curate
 				</span>
 			</div>
 			<p

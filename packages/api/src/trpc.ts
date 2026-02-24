@@ -1,6 +1,6 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
-import type { db as prismaDb } from "@synthesis/db";
+import type { db as prismaDb } from "@curate/db";
 
 export type Context = {
   db: typeof prismaDb;

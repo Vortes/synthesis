@@ -1,10 +1,10 @@
-# Synthesis
+# Curate
 
 > Your design library should build itself.
 
 Desktop + web tool for designers to capture UI components and flows, organized into an AI-sorted reference library.
 
-Capture screenshots from any app on your Mac with a global hotkey, and Synthesis automatically analyzes them with AI (GPT-4o Vision) and makes them searchable via natural language.
+Capture screenshots from any app on your Mac with a global hotkey, and Curate automatically analyzes them with AI (GPT-4o Vision) and makes them searchable via natural language.
 
 ## Tech Stack
 
@@ -23,7 +23,7 @@ Capture screenshots from any app on your Mac with a global hotkey, and Synthesis
 ## Repo Structure
 
 ```
-synthesis/
+curate/
 ├── apps/
 │   ├── web/                  # Next.js — web app + API + landing page
 │   └── desktop/              # Electron Forge + Vite — desktop app
@@ -38,7 +38,7 @@ synthesis/
 
 ### Package Responsibilities
 
-- **`packages/ui`** — All shared React components. Both apps import from `@synthesis/ui`. Single source of truth for the design system.
+- **`packages/ui`** — All shared React components. Both apps import from `@curate/ui`. Single source of truth for the design system.
 - **`packages/api`** — tRPC router definitions and Zod input schemas. Imported by `apps/web` (server) and `apps/desktop` (typed client).
 - **`packages/db`** — Prisma schema, client, and migrations. **Only used server-side by `apps/web`** — the desktop app never imports this.
 
@@ -56,8 +56,8 @@ synthesis/
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/Vortes/synthesis.git
-cd synthesis
+git clone https://github.com/Vortes/curate.git
+cd curate
 pnpm install
 ```
 

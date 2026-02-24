@@ -1,6 +1,9 @@
 import { z } from "zod";
+import { UTApi } from "uploadthing/server";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { analyzeCapture } from "../lib/analyze";
+
+const utapi = new UTApi();
 
 export const captureRouter = createTRPCRouter({
   list: protectedProcedure.query(async ({ ctx }) => {
@@ -57,8 +60,21 @@ export const captureRouter = createTRPCRouter({
       });
       if (!user) return { success: false };
 
-      await ctx.db.capture.deleteMany({
+      const capture = await ctx.db.capture.findFirst({
         where: { id: input.id, userId: user.id },
+      });
+      if (!capture) return { success: false };
+
+      // Extract file key from Uploadthing URL and delete the file
+      const fileKey = capture.imageUrl.split("/").pop();
+      if (fileKey) {
+        await utapi.deleteFiles(fileKey).catch(() => {
+          // Non-blocking — DB record still gets deleted
+        });
+      }
+
+      await ctx.db.capture.delete({
+        where: { id: capture.id },
       });
       return { success: true };
     }),

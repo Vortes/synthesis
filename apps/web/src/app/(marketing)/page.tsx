@@ -54,7 +54,7 @@ export default function LandingPage() {
           <HeroShadows />
 
           <nav className="nav">
-            <span className="brand">synthesis</span>
+            <span className="brand">curate</span>
             <ul className="nav-links">
               <li><a href="#how">About</a></li>
               <li><a href="#how">How it works</a></li>
@@ -68,7 +68,7 @@ export default function LandingPage() {
             you can <em>actually use.</em>
           </h1>
           <p className="hero-sub">
-            synthesis captures the design patterns you encounter every day and turns them
+            curate captures the design patterns you encounter every day and turns them
             into a personal library you can search the way you remember — fuzzy, imprecise, yours.
           </p>
         </section>
@@ -93,7 +93,7 @@ export default function LandingPage() {
           <div className="inset-number">02</div>
           <div className="inset-title">Never organize anything.</div>
           <p className="inset-text">
-            Component type, color palette, typography, platform. synthesis understands what
+            Component type, color palette, typography, platform. curate understands what
             you captured and files it without being asked. No folders. No tags. No maintenance.
           </p>
         </div>
@@ -104,7 +104,7 @@ export default function LandingPage() {
           <p className="inset-text">
             &ldquo;That date picker I saw on Linear.&rdquo; &ldquo;The way Stripe handles
             inline editing.&rdquo; Describe what you&apos;re looking for in your own words.
-            synthesis knows what you mean.
+            curate knows what you mean.
           </p>
         </div>
 
@@ -124,7 +124,7 @@ export default function LandingPage() {
         <div className="raised">
           <div className="inset-title">Walk through it once. Keep it forever.</div>
           <p className="inset-text">
-            Tell synthesis you&apos;re about to step through a flow — an onboarding sequence,
+            Tell curate you&apos;re about to step through a flow — an onboarding sequence,
             a checkout, a settings panel. It captures each screen as you navigate and stitches
             them into an ordered reference you can replay.
           </p>
@@ -154,7 +154,7 @@ export default function LandingPage() {
             AI can generate layouts, write code, ship prototypes before lunch. The bottleneck
             isn&apos;t execution anymore — it&apos;s taste. Every pattern you&apos;ve noticed,
             every interaction that made you pause, every decision you&apos;ve internalized
-            about what good feels like. That&apos;s your most valuable asset. synthesis makes
+            about what good feels like. That&apos;s your most valuable asset. curate makes
             it searchable.
           </p>
         </div>
@@ -166,7 +166,7 @@ export default function LandingPage() {
         </div>
 
         <footer className="foot">
-          <span className="brand-foot">synthesis — 2026</span>
+          <span className="brand-foot">curate — 2026</span>
           <span>Built for designers who notice things.</span>
         </footer>
       </div>

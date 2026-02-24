@@ -5,7 +5,7 @@ import {
   useSignIn,
   UserButton,
 } from "@clerk/clerk-react";
-import { AppShell } from "@synthesis/ui";
+import { AppShell } from "@curate/ui";
 import { useCallback, useEffect, useState } from "react";
 import { TRPCProvider } from "./TRPCProvider";
 import { LibraryView } from "./LibraryView";
@@ -62,7 +62,7 @@ function SignInScreen() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background">
       <div className="flex flex-col items-center gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight">Synthesis</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Curate</h1>
         <p className="text-sm text-muted-foreground">
           Sign in to access your design library
         </p>

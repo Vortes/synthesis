@@ -16,7 +16,7 @@ import {
 import { initOverlayWindow } from "./capture/overlayWindow";
 import { loadSettings, showPreferences } from "./capture/preferences";
 
-const PROTOCOL = "synthesis";
+const PROTOCOL = "curate";
 
 let mainWindow: BrowserWindow | null = null;
 let pendingAuthToken: string | null = null;

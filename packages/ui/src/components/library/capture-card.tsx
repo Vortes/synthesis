@@ -9,6 +9,9 @@ export interface CaptureCardData {
   createdAt: Date | string;
   analyzedAt?: Date | string | null;
   tags?: string[];
+  sourceApp?: string | null;
+  sourceUrl?: string | null;
+  description?: string | null;
 }
 
 interface CaptureCardProps {
@@ -17,6 +20,7 @@ interface CaptureCardProps {
   flowSteps?: number;
   onDelete?: (id: string) => void;
   onBookmark?: (id: string) => void;
+  onClick?: (capture: CaptureCardData) => void;
   isDeleting?: boolean;
   className?: string;
   style?: React.CSSProperties;
@@ -28,35 +32,44 @@ export function CaptureCard({
   flowSteps,
   onDelete,
   onBookmark,
+  onClick,
   isDeleting,
   className,
   style,
 }: CaptureCardProps) {
   return (
     <div
+      onClick={() => onClick?.(capture)}
       className={cn(
         "group relative overflow-hidden rounded-xl cursor-pointer transition-all duration-[250ms]",
-        variant === "default" && "bg-surface-warm shadow-card hover:-translate-y-0.5 hover:shadow-card-hover",
-        variant === "dark" && "bg-dark-bg shadow-card-dark hover:-translate-y-0.5 hover:shadow-card-hover",
-        variant === "flow" && "bg-surface-cool shadow-card-flow hover:-translate-y-px",
+        "bg-surface-cool shadow-[inset_0_1px_3px_rgba(0,0,0,0.04),inset_0_0_0_1px_rgba(0,0,0,0.02),0_1px_0_rgba(255,255,255,0.7)]",
+        "hover:shadow-[inset_0_2px_6px_rgba(0,0,0,0.07),inset_0_0_0_1px_rgba(0,0,0,0.04),0_1px_0_rgba(255,255,255,0.5)]",
         isDeleting && "pointer-events-none opacity-40",
         className
       )}
       style={style}
     >
-      {/* Preview area — full card, no info strip */}
-      <div className="relative w-full aspect-[4/3] overflow-hidden bg-surface-cool">
-        <img
-          src={capture.imageUrl}
-          alt="UI capture"
-          className="h-full w-full object-cover"
-        />
+      {/* Image area inset within card padding */}
+      <div className="p-2.5">
+        <div className="relative w-full aspect-[4/3] overflow-hidden rounded-lg transition-transform duration-[250ms] group-hover:scale-[0.98]">
+          <img
+            src={capture.imageUrl}
+            alt="UI capture"
+            className="h-full w-full object-cover"
+          />
 
         {/* Flow badge */}
         {variant === "flow" && flowSteps && (
           <div className="absolute bottom-2 left-2 flex items-center gap-1 px-2 py-1 bg-ink/75 backdrop-blur-sm rounded-[5px] font-mono text-[10px] font-normal text-dark-text tracking-[0.04em]">
             <Activity className="w-2.5 h-2.5" />
             {flowSteps} steps
+          </div>
+        )}
+
+        {/* sourceApp badge — shown on hover, hidden when flow badge is present */}
+        {capture.sourceApp && !(variant === "flow" && flowSteps) && (
+          <div className="absolute bottom-2 left-2 flex items-center gap-1 px-2 py-1 bg-ink/75 backdrop-blur-sm rounded-[5px] font-mono text-[10px] font-normal text-dark-text tracking-[0.04em] opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            {capture.sourceApp}
           </div>
         )}
 
@@ -84,6 +97,7 @@ export function CaptureCard({
           >
             <MoreHorizontal className="w-[13px] h-[13px]" />
           </button>
+        </div>
         </div>
       </div>
     </div>

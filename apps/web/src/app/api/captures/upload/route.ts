@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { UTApi } from "uploadthing/server";
-import { db } from "@synthesis/db";
-import { analyzeCapture } from "@synthesis/api";
+import { db } from "@curate/db";
+import { analyzeCapture } from "@curate/api";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

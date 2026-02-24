@@ -25,7 +25,7 @@ export const steps = [
 	},
 	{
 		title: "Three weeks later, you need it.",
-		desc: "Search the way your brain works. Fuzzy, half-remembered, imprecise. synthesis knows what you mean.",
+		desc: "Search the way your brain works. Fuzzy, half-remembered, imprecise. curate knows what you mean.",
 	},
 ]
 

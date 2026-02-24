@@ -8,8 +8,8 @@ const config: ForgeConfig = {
     extraResource: ["./native/build/Release/ax_url_reader.node"],
     protocols: [
       {
-        name: "Synthesis",
-        schemes: ["synthesis"],
+        name: "Curate",
+        schemes: ["curate"],
       },
     ],
   },

@@ -12,10 +12,11 @@ interface CaptureGridProps {
   groups: CaptureGroup[];
   onDelete?: (id: string) => void;
   onBookmark?: (id: string) => void;
+  onCardClick?: (capture: CaptureCardData) => void;
   deletingId?: string | null;
 }
 
-export function CaptureGrid({ groups, onDelete, onBookmark, deletingId }: CaptureGridProps) {
+export function CaptureGrid({ groups, onDelete, onBookmark, onCardClick, deletingId }: CaptureGridProps) {
   const totalCaptures = groups.reduce((sum, g) => sum + g.captures.length, 0);
 
   if (totalCaptures === 0) {
@@ -41,6 +42,7 @@ export function CaptureGrid({ groups, onDelete, onBookmark, deletingId }: Captur
                 capture={capture}
                 onDelete={onDelete}
                 onBookmark={onBookmark}
+                onClick={onCardClick}
                 isDeleting={deletingId === capture.id}
                 className="animate-fade-in-up"
                 style={{ animationDelay: `${cardIndex * 40 + groupIndex * 200}ms` }}
