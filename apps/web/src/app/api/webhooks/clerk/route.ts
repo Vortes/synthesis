@@ -61,6 +61,14 @@ export async function POST(req: Request) {
       console.log("Clerk webhook: upserted user", id, primaryEmail);
     }
 
+    if (eventType === "user.deleted") {
+      const { id } = evt.data;
+      if (id) {
+        await db.user.deleteMany({ where: { clerkId: id } });
+        console.log("Clerk webhook: deleted user", id);
+      }
+    }
+
     return new Response("", { status: 200 });
   } catch (error) {
     console.error("Clerk webhook: unhandled error:", error);
