@@ -291,6 +291,18 @@ function buildAppMenu() {
       ],
     },
     {
+      label: "View",
+      submenu: [
+        {
+          label: "Toggle Developer Tools",
+          accelerator: "CmdOrCtrl+Alt+I",
+          click: () => {
+            mainWindow?.webContents.toggleDevTools();
+          },
+        },
+      ],
+    },
+    {
       label: "Edit",
       submenu: [
         { role: "undo" },
