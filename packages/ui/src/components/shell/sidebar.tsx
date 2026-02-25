@@ -1,4 +1,4 @@
-import { LayoutGrid, Activity, Globe, Settings } from "lucide-react"
+import { LayoutGrid, Activity, Globe, Settings, LogOut, Loader2 } from "lucide-react"
 import { cn } from "../../lib/utils"
 
 interface CollectionItem {
@@ -13,6 +13,8 @@ interface SidebarProps {
 	className?: string
 	collections?: CollectionItem[]
 	platform?: "web" | "desktop"
+	onSignOut?: () => void | Promise<void>
+	isSigningOut?: boolean
 }
 
 const navItems = [
@@ -34,6 +36,8 @@ export function Sidebar({
 	className,
 	collections,
 	platform = "web",
+	onSignOut,
+	isSigningOut = false,
 }: SidebarProps) {
 	const collectionItems = collections ?? defaultCollections
 	const isDesktop = platform === "desktop"
@@ -135,9 +139,27 @@ export function Sidebar({
 
 			{/* Footer */}
 			<div className="px-6 py-4 mt-auto border-t border-edge">
-				<div className="flex items-center gap-2.5 py-1.5 text-ink-quiet text-[13px] cursor-pointer transition-all duration-200 hover:text-ink-mid">
-					<Settings className="w-[15px] h-[15px] opacity-40" />
-					Settings
+				<div className="flex items-center justify-between">
+					<div className="flex items-center gap-2.5 py-1.5 text-ink-quiet text-[13px] cursor-pointer transition-all duration-200 hover:text-ink-mid">
+						<Settings className="w-[15px] h-[15px] opacity-40" />
+						Settings
+					</div>
+					{onSignOut && (
+						<button
+							onClick={onSignOut}
+							disabled={isSigningOut}
+							className={cn(
+								"flex items-center gap-1.5 py-1.5 px-1 text-ink-quiet text-[13px] transition-all duration-200 hover:text-ink-mid",
+								isSigningOut && "opacity-40 cursor-not-allowed",
+							)}
+						>
+							{isSigningOut ? (
+								<Loader2 className="w-[15px] h-[15px] animate-spin" />
+							) : (
+								<LogOut className="w-[15px] h-[15px] opacity-40" />
+							)}
+						</button>
+					)}
 				</div>
 			</div>
 		</aside>

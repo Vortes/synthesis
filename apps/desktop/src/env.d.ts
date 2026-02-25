@@ -10,7 +10,7 @@ interface ImportMeta {
 
 interface ElectronAPI {
   signIn: () => void;
-  signOut: () => void;
+  signOut: () => Promise<void>;
   getToken: () => Promise<string | null>;
   onAuthToken: (callback: (token: string) => void) => () => void;
   openExternal: (url: string) => void;

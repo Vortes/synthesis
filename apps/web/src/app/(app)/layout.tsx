@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { UserButton } from "@clerk/nextjs";
+import { UserButton, useClerk } from "@clerk/nextjs";
 import { AppShell } from "@curate/ui";
 
 const pageTitles: Record<string, string> = {
@@ -12,12 +12,14 @@ const pageTitles: Record<string, string> = {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const pageTitle = pageTitles[pathname] ?? "Curate";
+  const { signOut } = useClerk();
 
   return (
     <AppShell
       activePath={pathname}
       pageTitle={pageTitle}
       userButton={<UserButton afterSignOutUrl="/" />}
+      onSignOut={() => signOut({ redirectUrl: "/sign-in" })}
     >
       {children}
     </AppShell>

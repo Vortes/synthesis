@@ -367,9 +367,15 @@ ipcMain.on("auth:sign-in", () => {
 });
 
 // Renderer requests sign-out → revoke + clear stored tokens
-ipcMain.on("auth:sign-out", () => {
+ipcMain.handle("auth:sign-out", async () => {
   clearRefreshTimer();
-  revokeTokens().finally(() => clearPersistedTokens());
+  try {
+    await revokeTokens();
+  } catch (err) {
+    console.error("[auth] Sign-out revocation failed:", err);
+  } finally {
+    clearPersistedTokens();
+  }
 });
 
 // Renderer asks for current token (e.g. on app launch)

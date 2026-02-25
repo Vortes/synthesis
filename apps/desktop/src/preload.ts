@@ -6,7 +6,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
   signIn: () => ipcRenderer.send("auth:sign-in"),
 
   /** Clear persisted JWT and sign out */
-  signOut: () => ipcRenderer.send("auth:sign-out"),
+  signOut: (): Promise<void> => ipcRenderer.invoke("auth:sign-out"),
 
   /** Get the current persisted JWT (null if signed out) */
   getToken: (): Promise<string | null> => ipcRenderer.invoke("auth:get-token"),
