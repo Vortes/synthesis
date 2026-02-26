@@ -7,3 +7,5 @@ native/build/
 # env
 .env
 .env.production
+.env.staging
+.env.development

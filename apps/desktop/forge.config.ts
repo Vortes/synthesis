@@ -1,11 +1,16 @@
 import dotenv from "dotenv";
 import type { ForgeConfig } from "@electron-forge/shared-types";
 
-// Load .env first, then let .env.production override for production builds
+// Determine app environment (default: development for local dev)
+const APP_ENV = process.env.APP_ENV || "development";
+
+// Load base .env, then override with environment-specific file
 dotenv.config({ path: ".env" });
-if (process.env.NODE_ENV === "production") {
-  dotenv.config({ path: ".env.production", override: true });
-}
+dotenv.config({ path: `.env.${APP_ENV}`, override: true });
+
+console.log(`[forge] APP_ENV=${APP_ENV}`);
+console.log(`[forge] VITE_WEB_URL=${process.env.VITE_WEB_URL}`);
+console.log(`[forge] APPLE_ID=${process.env.APPLE_ID ? "***loaded***" : "MISSING"}`);
 import { MakerZIP } from "@electron-forge/maker-zip";
 import { MakerDMG } from "@electron-forge/maker-dmg";
 import { VitePlugin } from "@electron-forge/plugin-vite";
@@ -22,7 +27,7 @@ const config: ForgeConfig = {
     protocols: [
       {
         name: "Curate",
-        schemes: ["curate"],
+        schemes: [process.env.APP_PROTOCOL!],
       },
     ],
     osxSign: {},
