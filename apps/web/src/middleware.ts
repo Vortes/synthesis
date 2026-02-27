@@ -8,13 +8,9 @@ const isProtectedRoute = createRouteMatcher([
 const isPublicApiRoute = createRouteMatcher([
 	"/api/webhooks(.*)",
 	"/api/uploadthing(.*)",
-	"/api/trpc(.*)",
-	"/api/captures(.*)",
 ])
 
 export default clerkMiddleware(async (auth, req) => {
-	// Skip Clerk auth processing for API routes that use their own
-	// Bearer token auth (desktop OAuth tokens)
 	if (isPublicApiRoute(req)) return
 	if (isProtectedRoute(req)) {
 		await auth.protect()

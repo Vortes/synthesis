@@ -10,6 +10,9 @@ export default defineConfig(() => ({
 		),
 		"process.env.CLERK_DOMAIN": JSON.stringify(process.env.CLERK_DOMAIN!),
 		"process.env.APP_PROTOCOL": JSON.stringify(process.env.APP_PROTOCOL!),
+		"process.env.VITE_VERCEL_PROTECTION_BYPASS": JSON.stringify(
+			process.env.VITE_VERCEL_PROTECTION_BYPASS ?? "",
+		),
 	},
 	build: {
 		rollupOptions: {
