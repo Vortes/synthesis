@@ -1,21 +1,29 @@
-import { auth, verifyToken } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server"
 
 export async function resolveUserId(req: Request): Promise<string | null> {
-  // Path 1: Clerk session (web clients — cookies/session JWT)
-  const { userId } = await auth();
-  if (userId) return userId;
+	// Debug: log the incoming auth header
+	const authHeader = req.headers.get("authorization")
+	console.log(`[resolveUserId] Authorization header present: ${!!authHeader}`)
+	if (authHeader) {
+		console.log(
+			`[resolveUserId] Token prefix: ${authHeader.substring(0, 20)}...`,
+		)
+	}
 
-  // Path 2: OAuth Bearer token (desktop client)
-  const header = req.headers.get("authorization");
-  if (!header?.startsWith("Bearer ")) return null;
-  const token = header.slice(7);
+	// Accepts both web session cookies (session_token) and
+	// desktop OAuth Bearer tokens (oauth_token)
+	const authResult = await auth({
+		acceptsToken: ["session_token", "oauth_token"],
+	})
 
-  try {
-    const payload = await verifyToken(token, {
-      secretKey: process.env.CLERK_SECRET_KEY!,
-    });
-    return payload.sub;
-  } catch {
-    return null;
-  }
+	// Debug: log the full auth result
+	console.log(`[resolveUserId] auth() result keys:`, Object.keys(authResult))
+	console.log(
+		`[resolveUserId] auth() result:`,
+		JSON.stringify(authResult, null, 2),
+	)
+
+	if ("userId" in authResult && authResult.userId) return authResult.userId
+	if ("subject" in authResult && authResult.subject) return authResult.subject
+	return null
 }
