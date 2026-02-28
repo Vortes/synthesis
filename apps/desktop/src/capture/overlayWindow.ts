@@ -1,12 +1,12 @@
-import { BrowserWindow, ipcMain, screen } from "electron";
-import path from "node:path";
+import { BrowserWindow, ipcMain, screen } from "electron"
+import path from "node:path"
 
-let overlayWindow: BrowserWindow | null = null;
-let pendingScreenshot: string | null = null;
-let isActive = false;
+let overlayWindow: BrowserWindow | null = null
+let pendingScreenshot: string | null = null
+let isActive = false
 
 function getOverlayHTML(): string {
-  return `<!DOCTYPE html>
+	return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -191,7 +191,7 @@ function getOverlayHTML(): string {
     });
   </script>
 </body>
-</html>`;
+</html>`
 }
 
 /**
@@ -199,54 +199,55 @@ function getOverlayHTML(): string {
  * It stays alive but invisible and click-through until activated.
  */
 export function initOverlayWindow() {
-  const primaryDisplay = screen.getPrimaryDisplay();
-  const { x, y, width, height } = primaryDisplay.bounds;
+	const primaryDisplay = screen.getPrimaryDisplay()
+	const { x, y, width, height } = primaryDisplay.bounds
 
-  overlayWindow = new BrowserWindow({
-    x,
-    y,
-    width,
-    height,
-    show: true,
-    frame: false,
-    transparent: true,
-    backgroundColor: "#00000000",
-    skipTaskbar: true,
-    resizable: false,
-    movable: false,
-    hasShadow: false,
-    focusable: true,
-    fullscreenable: false,
-    enableLargerThanScreen: true,
-    webPreferences: {
-      preload: path.join(__dirname, "overlay-preload.js"),
-      contextIsolation: true,
-      nodeIntegration: false,
-      backgroundThrottling: false,
-      webSecurity: false, // allow file:// image loads from data: origin overlay
-    },
-  });
+	overlayWindow = new BrowserWindow({
+		x,
+		y,
+		width,
+		height,
+		show: true,
+		frame: false,
+		transparent: true,
+		backgroundColor: "#00000000",
+		skipTaskbar: true,
+		resizable: false,
+		movable: false,
+		hasShadow: false,
+		focusable: true,
+		fullscreenable: false,
+		enableLargerThanScreen: true,
+		hiddenInMissionControl: true, // Don't show overlay in Mission Control
+		webPreferences: {
+			preload: path.join(__dirname, "overlay-preload.js"),
+			contextIsolation: true,
+			nodeIntegration: false,
+			backgroundThrottling: false,
+			webSecurity: false, // allow file:// image loads from data: origin overlay
+		},
+	})
 
-  // Start invisible and click-through
-  overlayWindow.setOpacity(0);
-  overlayWindow.setIgnoreMouseEvents(true);
-  overlayWindow.setAlwaysOnTop(true, "screen-saver");
-  overlayWindow.setVisibleOnAllWorkspaces(true, {
-    visibleOnFullScreen: true,
-  });
+	// Start invisible and click-through
+	overlayWindow.setOpacity(0)
+	overlayWindow.setIgnoreMouseEvents(true)
+	overlayWindow.setAlwaysOnTop(true, "screen-saver")
+	overlayWindow.setVisibleOnAllWorkspaces(true, {
+		visibleOnFullScreen: true,
+	})
 
-  const html = getOverlayHTML();
-  overlayWindow.loadURL(
-    `data:text/html;charset=utf-8,${encodeURIComponent(html)}`
-  );
+	const html = getOverlayHTML()
+	overlayWindow.loadURL(
+		`data:text/html;charset=utf-8,${encodeURIComponent(html)}`,
+	)
 
-  // Update bounds when display changes
-  const updateBounds = () => {
-    if (!overlayWindow || overlayWindow.isDestroyed()) return;
-    const display = screen.getPrimaryDisplay();
-    overlayWindow.setBounds(display.bounds);
-  };
-  screen.on("display-metrics-changed", updateBounds);
+	// Update bounds when display changes
+	const updateBounds = () => {
+		if (!overlayWindow || overlayWindow.isDestroyed()) return
+		const display = screen.getPrimaryDisplay()
+		overlayWindow.setBounds(display.bounds)
+	}
+	screen.on("display-metrics-changed", updateBounds)
 }
 
 /**
@@ -255,14 +256,14 @@ export function initOverlayWindow() {
  * Call setOverlayScreenshot() after to load the actual screenshot.
  */
 export function activateOverlay() {
-  if (!overlayWindow || overlayWindow.isDestroyed()) return;
-  if (isActive) return;
+	if (!overlayWindow || overlayWindow.isDestroyed()) return
+	if (isActive) return
 
-  isActive = true;
-  overlayWindow.webContents.send("overlay:activate");
-  overlayWindow.setIgnoreMouseEvents(false);
-  overlayWindow.setOpacity(1);
-  overlayWindow.focus();
+	isActive = true
+	overlayWindow.webContents.send("overlay:activate")
+	overlayWindow.setIgnoreMouseEvents(false)
+	overlayWindow.setOpacity(1)
+	overlayWindow.focus()
 }
 
 /**
@@ -270,32 +271,50 @@ export function activateOverlay() {
  * It loads via file:// and switches from CSS crosshair to custom drawn crosshair.
  */
 export function setOverlayScreenshot(screenshotPath: string) {
-  if (!overlayWindow || overlayWindow.isDestroyed()) return;
+	if (!overlayWindow || overlayWindow.isDestroyed()) return
 
-  pendingScreenshot = screenshotPath;
-  const cursor = screen.getCursorScreenPoint();
-  const bounds = overlayWindow.getBounds();
-  const cursorX = cursor.x - bounds.x;
-  const cursorY = cursor.y - bounds.y;
-  overlayWindow.webContents.send("overlay:screenshot", screenshotPath, cursorX, cursorY);
+	pendingScreenshot = screenshotPath
+	const cursor = screen.getCursorScreenPoint()
+	const bounds = overlayWindow.getBounds()
+	const cursorX = cursor.x - bounds.x
+	const cursorY = cursor.y - bounds.y
+	overlayWindow.webContents.send(
+		"overlay:screenshot",
+		screenshotPath,
+		cursorX,
+		cursorY,
+	)
 }
 
 /**
  * Deactivate the overlay — instant, no flash.
  */
 export function deactivateOverlay() {
-  if (!overlayWindow || overlayWindow.isDestroyed()) return;
+	if (!overlayWindow || overlayWindow.isDestroyed()) return
 
-  isActive = false;
-  pendingScreenshot = null;
-  overlayWindow.setOpacity(0);
-  overlayWindow.setIgnoreMouseEvents(true);
-  overlayWindow.webContents.send("overlay:clear");
+	isActive = false
+	pendingScreenshot = null
+	overlayWindow.setOpacity(0)
+	overlayWindow.setIgnoreMouseEvents(true)
+	overlayWindow.webContents.send("overlay:clear")
 }
 
 // Screenshot is drawn on canvas — overlay is already visible, just acknowledge
-ipcMain.on("overlay:screenshot-ready", () => {});
+ipcMain.on("overlay:screenshot-ready", () => {})
 
 export function isOverlayActive(): boolean {
-  return isActive;
+	return isActive
+}
+
+/**
+ * Destroy the overlay window (e.g. when the main window is closed).
+ * Call initOverlayWindow() again to recreate it.
+ */
+export function destroyOverlayWindow() {
+	if (overlayWindow && !overlayWindow.isDestroyed()) {
+		overlayWindow.destroy()
+	}
+	overlayWindow = null
+	isActive = false
+	pendingScreenshot = null
 }

@@ -14,7 +14,10 @@ import {
 	initCaptureManager,
 	startCapture,
 } from "./capture/captureManager"
-import { initOverlayWindow } from "./capture/overlayWindow"
+import {
+	initOverlayWindow,
+	destroyOverlayWindow,
+} from "./capture/overlayWindow"
 import { loadSettings, showPreferences } from "./capture/preferences"
 import {
 	CLERK_AUTHORIZE_URL,
@@ -182,7 +185,9 @@ async function exchangeCodeForTokens(code: string) {
 		})
 
 		console.log(`[auth] exchangeCodeForTokens: posting to ${CLERK_TOKEN_URL}`)
-		console.log(`[auth] redirect_uri=${PROTOCOL}://auth, client_id=${CLERK_OAUTH_CLIENT_ID}`)
+		console.log(
+			`[auth] redirect_uri=${PROTOCOL}://auth, client_id=${CLERK_OAUTH_CLIENT_ID}`,
+		)
 
 		const res = await fetch(CLERK_TOKEN_URL, {
 			method: "POST",
@@ -363,6 +368,7 @@ function createWindow() {
 
 	mainWindow.on("closed", () => {
 		mainWindow = null
+		destroyOverlayWindow()
 	})
 
 	// Initialize capture system
@@ -453,6 +459,7 @@ app.on("window-all-closed", () => {
 app.on("activate", () => {
 	if (BrowserWindow.getAllWindows().length === 0) {
 		createWindow()
+		initOverlayWindow()
 	}
 })
 
