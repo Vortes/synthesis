@@ -8,6 +8,7 @@ const isProtectedRoute = createRouteMatcher([
 const isPublicApiRoute = createRouteMatcher([
 	"/api/webhooks(.*)",
 	"/api/uploadthing(.*)",
+	"/api/captures/upload(.*)",
 ])
 
 export default clerkMiddleware(async (auth, req) => {

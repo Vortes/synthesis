@@ -4,14 +4,13 @@
   "private": true,
   "main": ".vite/build/main.js",
   "scripts": {
-    "dev": "electron-forge start",
+    "dev": "APP_ENV=development electron-forge start",
     "postinstall": "bash scripts/sign-electron-dev.sh",
     "build:swift": "swiftc swift-helpers/window-info.swift -o swift-helpers/window-info -framework CoreGraphics -framework AppKit",
     "build:native": "cd native && node-gyp rebuild --target=$(node -e \"console.log(require('electron/package.json').version)\") --arch=arm64 --dist-url=https://electronjs.org/headers",
     "build": "pnpm build:swift && pnpm build:native && electron-forge make",
     "build:staging": "APP_ENV=staging pnpm build",
     "build:production": "APP_ENV=production pnpm build",
-    "dev:staging": "APP_ENV=staging electron-forge start",
     "package": "electron-forge package"
   },
   "dependencies": {
