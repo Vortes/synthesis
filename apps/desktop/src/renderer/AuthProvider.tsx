@@ -10,21 +10,24 @@ interface AuthContextValue {
   token: string | null;
   isLoading: boolean;
   isSignedIn: boolean;
+  isSigningOut: boolean;
   signIn: () => void;
-  signOut: () => void;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue>({
   token: null,
   isLoading: true,
   isSignedIn: false,
+  isSigningOut: false,
   signIn: () => {},
-  signOut: () => {},
+  signOut: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   useEffect(() => {
     // Load persisted token on mount
@@ -46,14 +49,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.electronAPI.signIn();
   }, []);
 
-  const signOut = useCallback(() => {
-    window.electronAPI.signOut();
-    setToken(null);
+  const signOut = useCallback(async () => {
+    setIsSigningOut(true);
+    try {
+      await window.electronAPI.signOut();
+      setToken(null);
+    } finally {
+      setIsSigningOut(false);
+    }
   }, []);
 
   return (
     <AuthContext.Provider
-      value={{ token, isLoading, isSignedIn: !!token, signIn, signOut }}
+      value={{ token, isLoading, isSignedIn: !!token, isSigningOut, signIn, signOut }}
     >
       {children}
     </AuthContext.Provider>

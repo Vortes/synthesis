@@ -8,6 +8,8 @@ interface AppShellProps {
 	className?: string
 	userButton?: React.ReactNode
 	platform?: "web" | "desktop"
+	onSignOut?: () => void | Promise<void>
+	isSigningOut?: boolean
 }
 
 export function AppShell({
@@ -16,6 +18,8 @@ export function AppShell({
 	className,
 	userButton,
 	platform = "web",
+	onSignOut,
+	isSigningOut,
 }: AppShellProps) {
 	const isDesktop = platform === "desktop"
 
@@ -24,6 +28,8 @@ export function AppShell({
 			<Sidebar
 				activePath={activePath}
 				platform={platform}
+				onSignOut={onSignOut}
+				isSigningOut={isSigningOut}
 			/>
 			<main
 				className={cn(

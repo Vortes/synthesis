@@ -1,4 +1,5 @@
 import { AppShell } from "@curate/ui";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { useAuth } from "./AuthProvider";
 import { TRPCProvider } from "./TRPCProvider";
@@ -43,6 +44,27 @@ function SignInScreen() {
   );
 }
 
+function AppContent() {
+  const { signOut, isSigningOut } = useAuth();
+  const queryClient = useQueryClient();
+
+  const handleSignOut = useCallback(async () => {
+    queryClient.clear();
+    await signOut();
+  }, [signOut, queryClient]);
+
+  return (
+    <AppShell
+      activePath="/library"
+      platform="desktop"
+      onSignOut={handleSignOut}
+      isSigningOut={isSigningOut}
+    >
+      <LibraryView />
+    </AppShell>
+  );
+}
+
 export function App() {
   const { isLoading, isSignedIn } = useAuth();
 
@@ -60,9 +82,7 @@ export function App() {
 
   return (
     <TRPCProvider>
-      <AppShell activePath="/library" platform="desktop">
-        <LibraryView />
-      </AppShell>
+      <AppContent />
     </TRPCProvider>
   );
 }
